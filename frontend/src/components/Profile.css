@@ -152,12 +152,6 @@
   border-color: transparent;
 }
 
-.security-button:hover {
-  background: linear-gradient(135deg, #48bb78, #38a169);
-  color: white;
-  border-color: transparent;
-}
-
 /* Адаптивность */
 @media (max-width: 768px) {
   .profile-content {
@@ -209,5 +203,57 @@
   
   .profile-info h2 {
     font-size: 20px;
+  }
+}
+
+/* Для очень маленьких экранов */
+@media (max-width: 320px) {
+  .profile-content {
+    padding: 15px 10px;
+  }
+  
+  .profile-card {
+    padding: 20px 15px;
+  }
+  
+  .profile-details {
+    padding: 15px;
+  }
+  
+  .detail-item {
+    padding: 8px 0;
+  }
+  
+  .detail-label,
+  .detail-value {
+    font-size: 13px;
+  }
+}
+
+/* Для больших экранов */
+@media (min-width: 1440px) {
+  .profile-content {
+    max-width: 700px;
+  }
+  
+  .profile-card {
+    padding: 40px;
+  }
+  
+  .profile-avatar {
+    width: 100px;
+    height: 100px;
+    font-size: 28px;
+  }
+}
+
+/* Для планшетов в альбомной ориентации */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+  .profile-content {
+    padding: 20px;
+  }
+  
+  .profile-card {
+    padding: 25px;
   }
 }

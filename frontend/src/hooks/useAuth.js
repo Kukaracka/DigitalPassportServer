@@ -7,7 +7,6 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Проверяем авторизацию при загрузке приложения
   useEffect(() => {
     checkAuth();
   }, []);
@@ -18,9 +17,9 @@ export const useAuth = () => {
       await AuthAPI.checkAuth();
       setIsAuthenticated(true);
       
-      // Получаем данные пользователя
       const userData = await AuthAPI.getCurrentUser();
       setUser(userData);
+      
     } catch (error) {
       setIsAuthenticated(false);
       setUser(null);
@@ -37,13 +36,15 @@ export const useAuth = () => {
       const result = await AuthAPI.login(credentials);
       setIsAuthenticated(true);
       
-      // Получаем данные пользователя после успешного логина
       const userData = await AuthAPI.getCurrentUser();
       setUser(userData);
       
       return result;
     } catch (error) {
-      setError(error.message);
+      const errorMessage = error.message;
+      setError(errorMessage);
+      setIsAuthenticated(false);
+      setUser(null);
       throw error;
     } finally {
       setLoading(false);
@@ -58,17 +59,22 @@ export const useAuth = () => {
       const result = await AuthAPI.register(userData);
       return result;
     } catch (error) {
-      setError(error.message);
+      const errorMessage = error.message;
+      setError(errorMessage);
       throw error;
     } finally {
       setLoading(false);
     }
   };
 
-  const logout = () => {
-    // Удаляем токен из cookies
+  const logout = async () => {
     setIsAuthenticated(false);
     setUser(null);
+    setError(null);
+    document.cookie = 'my_access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+  };
+
+  const clearError = () => {
     setError(null);
   };
 
@@ -80,6 +86,7 @@ export const useAuth = () => {
     login,
     register,
     logout,
-    checkAuth
+    checkAuth,
+    clearError
   };
 };

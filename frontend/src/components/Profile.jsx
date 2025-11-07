@@ -2,8 +2,7 @@ import React from 'react';
 import './Profile.css';
 
 const Profile = ({ user, onBack }) => {
-  // Берем первого пользователя из массива (так как API возвращает массив)
-  const userData = user?.[0] || {};
+  const userData = user || {};
 
   return (
     <div className="profile">
@@ -58,11 +57,6 @@ const Profile = ({ user, onBack }) => {
                   <span className="detail-value">{userData.phone_number}</span>
                 </div>
               )}
-              
-              <div className="detail-item">
-                <span className="detail-label">ID пользователя:</span>
-                <span className="detail-value">{userData.id}</span>
-              </div>
             </div>
           </div>
         </div>
@@ -70,9 +64,6 @@ const Profile = ({ user, onBack }) => {
         <div className="profile-actions">
           <button className="action-button edit-button">
             ✏️ Редактировать профиль
-          </button>
-          <button className="action-button security-button">
-            🔐 Настройки безопасности
           </button>
         </div>
       </main>

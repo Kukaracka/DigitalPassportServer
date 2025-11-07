@@ -3,20 +3,21 @@ import Profile from './Profile';
 import './Dashboard.css';
 
 const Dashboard = ({ user, onLogout }) => {
-  const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard' или 'profile'
+  const [currentView, setCurrentView] = useState('dashboard');
 
-  // Если текущий вид - профиль, показываем страницу профиля
+  // Теперь user - это один объект, а не массив
+  const currentUser = user;
+
   if (currentView === 'profile') {
     return <Profile user={user} onBack={() => setCurrentView('dashboard')} />;
   }
 
-  // Иначе показываем главную dashboard
   return (
     <div className="dashboard">
       <header className="dashboard-header">
         <h1>DigitalPassport</h1>
         <div className="user-info">
-          <span>Добро пожаловать, {user?.[0]?.first_name || 'Пользователь'}!</span>
+          <span>Добро пожаловать, {currentUser?.first_name || 'Пользователь'}!</span>
           <button onClick={onLogout} className="logout-button">
             Выйти
           </button>

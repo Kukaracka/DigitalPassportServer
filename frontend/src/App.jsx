@@ -3,7 +3,6 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import { useAuth } from './hooks/useAuth';
-import { clearAuthCookies, setManualLogoutFlag, clearManualLogoutFlag, isManualLogout } from './utils/cookieManager';
 import './App.css';
 
 function App() {
@@ -14,44 +13,55 @@ function App() {
     error, 
     login, 
     register, 
-    logout 
+    logout,
+    clearError 
   } = useAuth();
 
   const [currentView, setCurrentView] = useState('login');
-  const [manualLogout, setManualLogout] = useState(isManualLogout());
 
-  // Обработчик выхода
-  const handleLogout = async () => {
-    // Очищаем cookies ПЕРЕД вызовом API logout
-    clearAuthCookies();
-    setManualLogoutFlag();
-    
-    await logout();
-    setManualLogout(true);
+  // Очищаем ошибки при переключении между формами
+  useEffect(() => {
+    if (error) {
+      clearError();
+    }
+  }, [currentView]);
+
+  const handleLogin = async (credentials) => {
+    try {
+      await login(credentials);
+      // Успешный логин автоматически перенаправит в dashboard через состояние isAuthenticated
+    } catch (error) {
+      // Ошибка уже обработана в хуке
+      console.error('Login failed:', error);
+    }
   };
 
-  // Сбрасываем флаг manualLogout при успешной проверке auth
-  useEffect(() => {
-    if (isAuthenticated) {
-      setManualLogout(false);
-      clearManualLogoutFlag();
+  const handleRegister = async (userData) => {
+    try {
+      await register(userData);
+      // После успешной регистрации переключаем на форму логина
+      setCurrentView('login');
+    } catch (error) {
+      // Ошибка уже обработана в хуке
+      console.error('Registration failed:', error);
     }
-  }, [isAuthenticated]);
+  };
 
-  // Обработчики переключения между формами
+  const handleLogout = async () => {
+    await logout();
+    setCurrentView('login');
+  };
+
   const handleSwitchToLogin = () => {
     setCurrentView('login');
-    setManualLogout(false);
-    clearManualLogoutFlag();
   };
 
   const handleSwitchToRegister = () => {
     setCurrentView('register');
-    setManualLogout(false);
-    clearManualLogoutFlag();
   };
 
-  if (loading) {
+  // Показываем загрузку только при первоначальной проверке auth
+  if (loading && !isAuthenticated) {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>
@@ -60,31 +70,42 @@ function App() {
     );
   }
 
-  // Если пользователь вышел вручную - не показываем dashboard
-  if (isAuthenticated && !manualLogout) {
-    return <Dashboard user={user} onLogout={handleLogout} />;
-  }
-
   return (
     <div className="App">
       {error && (
         <div className="error-message">
           {error}
+          <button 
+            onClick={clearError} 
+            style={{
+              marginLeft: '10px',
+              background: 'transparent',
+              border: 'none',
+              color: 'white',
+              cursor: 'pointer'
+            }}
+          >
+            ×
+          </button>
         </div>
       )}
       
-      {currentView === 'login' ? (
-        <Login 
-          onSwitchToRegister={handleSwitchToRegister}
-          onLogin={login}
-          error={error}
-        />
+      {isAuthenticated ? (
+        <Dashboard user={user} onLogout={handleLogout} />
       ) : (
-        <Register 
-          onSwitchToLogin={handleSwitchToLogin}
-          onRegister={register}
-          error={error}
-        />
+        currentView === 'login' ? (
+          <Login 
+            onSwitchToRegister={handleSwitchToRegister}
+            onLogin={handleLogin}
+            error={error}
+          />
+        ) : (
+          <Register 
+            onSwitchToLogin={handleSwitchToLogin}
+            onRegister={handleRegister}
+            error={error}
+          />
+        )
       )}
     </div>
   );
