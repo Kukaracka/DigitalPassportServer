@@ -1,13 +1,14 @@
 from authx import AuthX
 from fastapi import HTTPException, security
 
+from database.models import UserModel
 from schemas.user_schemas import UserCreateSchema, UserReadSchema
 from utils.repository import SQLAlchemyRepository
 
 
 class AuthService:
-    def __init__(self, users_repo_cls: SQLAlchemyRepository):
-        self.users_repo: SQLAlchemyRepository = users_repo_cls()
+    def __init__(self, users_repo_cls: SQLAlchemyRepository[UserModel]):
+        self.users_repo: SQLAlchemyRepository = users_repo_cls
         self.security = security
 
     async def authenticate_user(

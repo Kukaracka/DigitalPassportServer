@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 
-from api.dependencies import verify_token
+from api.dependencies import get_current_authorised_user, verify_token
 from database.models import UserModel
 from repositories.user_repository import UserRepository
 from schemas.user_schemas import UserCreateSchema, UserReadSchema
@@ -29,7 +29,7 @@ async def create_user(
     response_description="One user retrieved successfully",
     response_model=UserReadSchema
 )
-async def get_user(current_user: UserModel = Depends(verify_token)):
+async def get_user(current_user: UserModel = Depends(get_current_authorised_user)):
     user_repo = UserRepository(UserModel)
     user_service = UserService(user_repo)
     user_data = await user_service.read_one_user(current_user.id)
