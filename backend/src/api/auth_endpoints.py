@@ -19,7 +19,8 @@ auth_router = APIRouter(prefix="", tags=["Auth"])
 
 @auth_router.post("/login", response_model=TokenResponseSchema)
 async def login(credentials: UserLoginSchema, responce: Response):
-    auth_service = AuthService(UserRepository)
+    user_repo = UserRepository(UserModel)
+    auth_service = AuthService(user_repo)
     token = await auth_service.authenticate_user(
         security=security, username=credentials.username, password=credentials.password
     )
@@ -29,7 +30,8 @@ async def login(credentials: UserLoginSchema, responce: Response):
 
 @auth_router.post("/register")
 async def register(credentials: UserCreateSchema, responce: Response) -> UserReadSchema:
-    service = AuthService(UserRepository)
+    user_repo = UserRepository(UserModel)
+    service = AuthService(user_repo)
     user = await service.registrate_user(credentials)
     return user
 
