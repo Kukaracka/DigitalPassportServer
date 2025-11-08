@@ -1,4 +1,7 @@
-from fastapi import APIRouter, Depends, Response
+import os
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi.responses import RedirectResponse
+from dotenv import load_dotenv
 
 from api.dependencies import verify_token
 from database.models import UserModel
@@ -11,6 +14,9 @@ from schemas.user_schemas import (
 )
 from api.dependencies import config, security
 from services.auth_service import AuthService
+from services.google_oauth import oauth
+
+load_dotenv()
 
 auth_router = APIRouter(prefix="", tags=["Auth"])
 
@@ -44,3 +50,48 @@ def check(current_user: UserModel = Depends(verify_token)):
     Endpoint for authorization check
     """
     return {"Authentication successful"}
+
+@auth_router.get("/google/login")
+async def google_login(request: Request):
+    """
+    Начало авторизации через Google.
+    Перенаправляет пользователя на Google login.
+    """
+    return await oauth.google.authorize_redirect(request, os.getenv("GOOGLE_REDIRECT_URL"))
+
+
+@auth_router.get("/google/callback")
+async def google_callback(request: Request, response: Response):
+    """
+    Callback после авторизации через Google.
+    Создает пользователя, если его нет, и выдает JWT.
+    """
+    token = await oauth.google.authorize_access_token(request)
+    user_info = token.get('userinfo')
+
+    if not user_info:
+        raise HTTPException(status_code=400, detail="Google authentication failed")
+
+    email = user_info['email']
+    name = user_info.get('name', email.split('@')[0])
+
+    user_repo = UserRepository(UserModel)
+    auth_service = AuthService(user_repo)
+    user = await user_repo.get_by_username(email)
+
+    if not user:
+        # Создаем нового пользователя
+        user_data = UserCreateSchema(username=email, 
+                                     password="Oauth_google_dummy_password12345",
+                                     email=email,
+                                     first_name=name.split(" ")[0] if " " in name else name,
+                                     last_name=name.split(" ")[1] if " " in name else " ",
+                                     father_name="")
+        await auth_service.registrate_user(user_data)
+        user = await user_repo.get_by_username(email)
+
+    jwt_token = security.create_access_token(uid=str(user.id))
+    response.set_cookie(config.JWT_ACCESS_COOKIE_NAME, jwt_token)
+
+    # Редирект на фронтенд с токеном
+    return RedirectResponse(f"{os.getenv("FRONTEND_URL")}/auth/success?token={jwt_token}")

@@ -24,7 +24,10 @@ class AuthService:
         token = security.create_access_token(uid=str(user.id))
         return token
 
-    async def registrate_user(self, user_data: UserCreateSchema) -> UserReadSchema:
+    async def registrate_user(self, user_data: UserCreateSchema) -> UserModel | None:
+        """
+        Создает пользователя в БД. Возвращает объект UserModel.
+        """
         existing_user = await self.users_repo.get_by_username(user_data.username)
         if existing_user:
             raise HTTPException(
@@ -33,6 +36,5 @@ class AuthService:
 
         user_dict = user_data.model_dump()
         user_id = await self.users_repo.create_one(user_dict)
-
         user = await self.users_repo.read_one(user_id)
-        return UserReadSchema.from_orm(user)
+        return user

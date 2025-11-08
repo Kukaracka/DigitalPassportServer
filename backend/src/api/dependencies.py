@@ -1,13 +1,20 @@
+import os
 from authx import AuthX, AuthXConfig
 from authx.exceptions import JWTDecodeError
 from fastapi import Depends, HTTPException, Request, status
 
-from api.auth_key import SECRET_KEY
 from database.models import UserModel
 from repositories.user_repository import UserRepository
+from dotenv import load_dotenv
 
+load_dotenv()
+
+
+secret = os.getenv("SECRET_KEY")
+if secret is None:
+    raise Exception
 config = AuthXConfig()
-config.JWT_SECRET_KEY = SECRET_KEY
+config.JWT_SECRET_KEY = secret
 config.JWT_ACCESS_COOKIE_NAME = "my_access_token"
 config.JWT_TOKEN_LOCATION = ["cookies"]
 config.JWT_COOKIE_CSRF_PROTECT = False

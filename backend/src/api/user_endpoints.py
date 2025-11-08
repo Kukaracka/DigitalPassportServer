@@ -9,7 +9,6 @@ from services.user_service import UserService
 user_router = APIRouter(prefix="/users", tags=["Users"])
 
 
-
 @user_router.post(
     "/",
     response_description="New user has been created",
@@ -24,16 +23,18 @@ async def create_user(
     user_id = await user_service.add_user(user)
     return {"created": True, "user_id": user_id}
 
+
 @user_router.get(
     "/me",
     response_description="One user retrieved successfully",
-    response_model=UserReadSchema
+    response_model=UserReadSchema,
 )
 async def get_user(current_user: UserModel = Depends(get_current_authorised_user)):
     user_repo = UserRepository(UserModel)
     user_service = UserService(user_repo)
     user_data = await user_service.read_one_user(current_user.id)
     return user_data
+
 
 @user_router.get(
     "/",
@@ -52,11 +53,17 @@ async def get_users() -> list[UserReadSchema]:
 
 @user_router.delete("/", response_description="User has been deleted")
 async def detele_user(user_id):
+    """
+    Тут нихуя нет если чо
+    """
     # TODO: delete logic
     return {"user_id": user_id, "deleted": True}
 
 
 @user_router.patch("/", response_description="User has been updated")
 async def update_user(user_id):
+    """
+    Тут нихуя нет если чо
+    """
     # TODO: update logic
     return {"user_id": user_id, "updated": True}

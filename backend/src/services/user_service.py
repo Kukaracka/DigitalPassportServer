@@ -14,7 +14,7 @@ class UserService:
         return user_id
 
     async def read_all_users(self) -> list[UserReadSchema]:
-        user_data: list[UserModel] = await self.users_repo.read_all()
+        user_data: list[UserModel] | None = await self.users_repo.read_all()
         users_schema = [UserReadSchema.model_validate(user) for user in user_data]
         return users_schema
     
