@@ -2,8 +2,7 @@ import os
 from fastapi import FastAPI
 from api.api_router import api_router
 import uvicorn
-from starlette.middleware.sessions import SessionMiddleware
-
+from fastapi.middleware.cors import CORSMiddleware
 from database.models import Base, engine
 from dotenv import load_dotenv
 
@@ -21,11 +20,13 @@ app.add_event_handler("startup", create_tables)
 secret = os.getenv("SECRET_KEY")
 if secret is None:
     raise Exception
+
 app.add_middleware(
-    SessionMiddleware,
-    secret_key=secret,
-    same_site="lax",     # cookie работают при редиректе с Google
-    https_only=False     # локальная разработка на http
+    CORSMiddleware,
+    allow_origins=["*"],  # для dev можно так, для production лучше точный список
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(api_router, prefix="/api")
