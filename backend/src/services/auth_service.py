@@ -24,17 +24,16 @@ class AuthService:
         token = security.create_access_token(uid=str(user.id))
         return token
 
-    async def registrate_user(self, user_data: UserCreateSchema) -> UserModel | None:
+    async def registrate_user(self, user_data: UserCreateSchema) -> UserModel:
         """
         Создает пользователя в БД. Возвращает объект UserModel.
         """
         existing_user = await self.users_repo.get_by_username(user_data.username)
         if existing_user:
             raise HTTPException(
-                status_code=409, detail="User with this username already exists"
+                status_code=409, detail="User with this username уже существует"
             )
 
         user_dict = user_data.model_dump()
-        user_id = await self.users_repo.create_one(user_dict)
-        user = await self.users_repo.read_one(user_id)
-        return user
+        new_user = await self.users_repo.create_one(user_dict)  # <- сразу объект модели
+        return new_user

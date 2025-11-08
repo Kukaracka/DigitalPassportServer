@@ -57,7 +57,7 @@ async def google_login(request: Request):
     Начало авторизации через Google.
     Перенаправляет пользователя на Google login.
     """
-    return await oauth.google.authorize_redirect(request, os.getenv("GOOGLE_REDIRECT_URL"))
+    return await oauth.google.authorize_redirect(request, os.getenv("GOOGLE_REDIRECT_URI"))
 
 
 @auth_router.get("/google/callback")
