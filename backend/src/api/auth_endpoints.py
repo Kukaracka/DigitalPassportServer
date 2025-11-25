@@ -10,7 +10,6 @@ from schemas.user_schemas import (
     TokenResponseSchema,
     UserCreateSchema,
     UserLoginSchema,
-    UserReadSchema,
 )
 from api.dependencies import config, security
 from services.auth_service import AuthService
@@ -35,7 +34,7 @@ async def login(credentials: UserLoginSchema, responce: Response):
 
 
 @auth_router.post("/register")
-async def register(credentials: UserCreateSchema, responce: Response) -> UserReadSchema:
+async def register(credentials: UserCreateSchema, responce: Response):
     user_repo = UserRepository(UserModel)
     service = AuthService(user_repo)
     user = await service.registrate_user(credentials)
