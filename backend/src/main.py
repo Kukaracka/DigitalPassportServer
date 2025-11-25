@@ -1,12 +1,13 @@
 import os
+from starlette.middleware.sessions import SessionMiddleware
 from fastapi import FastAPI
 from api.api_router import api_router
 import uvicorn
-from fastapi.middleware.cors import CORSMiddleware
 from database.models import Base, engine
 from dotenv import load_dotenv
 
 load_dotenv()
+
 
 async def create_tables():
     async with engine.begin() as conn:
@@ -16,17 +17,15 @@ async def create_tables():
 app = FastAPI()
 app.add_event_handler("startup", create_tables)
 
-# Мидлвар для работы сессий (обязательно для Google OAuth)
 secret = os.getenv("SECRET_KEY")
 if secret is None:
-    raise Exception
+    raise Exception("You have no secret auth key in .env file")
 
 app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # для dev можно так, для production лучше точный список
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    SessionMiddleware,
+    secret_key=secret,
+    same_site="lax",
+    https_only=False,
 )
 
 app.include_router(api_router, prefix="/api")
