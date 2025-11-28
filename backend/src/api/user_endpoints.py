@@ -1,9 +1,8 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
-from api.dependencies import get_current_authorised_user, verify_token
+from api.dependencies import get_current_authorised_user, get_user_service
 from database.models import UserModel
-from repositories.user_repository import UserRepository
-from schemas.user_schemas import UserCreateSchema, UserReadSchema
+from schemas.user_schemas import UserCreateSchema, UserReadSchema, UserUpdateSchema
 from services.user_service import UserService
 
 user_router = APIRouter(prefix="/users", tags=["Users"])
@@ -16,10 +15,8 @@ user_router = APIRouter(prefix="/users", tags=["Users"])
 )
 async def create_user(
     user: UserCreateSchema,
-    # current_user: UserModel = Depends(get_current_authorised_user),
+    user_service: UserService = Depends(get_user_service),
 ):
-    user_repo = UserRepository(UserModel)
-    user_service = UserService(user_repo)
     user_id = await user_service.add_user(user)
     return {"created": True, "user_id": user_id}
 
@@ -29,9 +26,10 @@ async def create_user(
     response_description="One user retrieved successfully",
     response_model=UserReadSchema,
 )
-async def get_user(current_user: UserModel = Depends(get_current_authorised_user)):
-    user_repo = UserRepository(UserModel)
-    user_service = UserService(user_repo)
+async def get_user(
+    current_user: UserModel = Depends(get_current_authorised_user),
+    user_service: UserService = Depends(get_user_service),
+):
     user_data = await user_service.read_one_user(current_user.id)
     return user_data
 
@@ -41,12 +39,12 @@ async def get_user(current_user: UserModel = Depends(get_current_authorised_user
     response_description="List of users retrieved successfully",
     response_model=list[UserReadSchema],
 )
-async def get_users() -> list[UserReadSchema]:
+async def get_users(
+    user_service: UserService = Depends(get_user_service),
+) -> list[UserReadSchema]:
     """
-    This endpoint is used to get a list of users
+    Получить список всех пользователей
     """
-    user_repo = UserRepository(UserModel)
-    user_service = UserService(user_repo)
     user_data = await user_service.read_all_users()
     return user_data
 
@@ -60,10 +58,25 @@ async def detele_user(user_id):
     return {"user_id": user_id, "deleted": True}
 
 
-@user_router.patch("/", response_description="User has been updated")
-async def update_user(user_id):
+@user_router.patch(
+    "/{user_id}",
+    response_description="User has been updated",
+    response_model=UserReadSchema,
+)
+async def update_user(
+    user_id: int,
+    user_data: UserUpdateSchema,
+    user_service: UserService = Depends(get_user_service),
+):
     """
-    Тут нихуя нет если чо
+    Частичное обновление информации о пользователе
     """
-    # TODO: update logic
-    return {"user_id": user_id, "updated": True}
+    try:
+        updated_user = await user_service.update_user(user_id, user_data)
+        if not updated_user:
+            raise HTTPException(status_code=404, detail="User not found")
+        return updated_user
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
