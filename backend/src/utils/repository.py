@@ -10,22 +10,18 @@ from typing import (
     TypeVar,
 )
 
-from sqlalchemy import asc, delete, desc, insert, select
-from sqlalchemy.ext.asyncio import async_sessionmaker
+from sqlalchemy import asc, delete, desc, insert, select, update
 from sqlalchemy.sql import ColumnElement
-from database.models import engine
-
+from src.database.models import Session
 
 T = TypeVar("T")
-TCreate = TypeVar("TCreate")
 
 
-class AbstractRepository(ABC, Generic[T, TCreate]):
+class AbstractRepository(ABC, Generic[T]):
     """Базовый интерфейс репозитория."""
 
     @abstractmethod
-    async def create_one(self, obj_in: TCreate) -> T:
-        pass
+    async def create_one(self, data: dict) -> T: ...
 
     @abstractmethod
     async def read_all(
@@ -33,31 +29,30 @@ class AbstractRepository(ABC, Generic[T, TCreate]):
         filter_clause: Optional[ColumnElement[bool]] = None,
         order: Optional[Literal["asc", "desc"]] = None,
         order_by: Optional[str] = None,
-    ) -> list[T]:
-        pass
+    ) -> list[T]: ...
 
     @abstractmethod
-    async def read_one(self, obj_id: Any) -> T | None:
-        pass
+    async def read_one(self, obj_id: Any) -> T | None: ...
 
     @abstractmethod
-    async def delete_one(self, obj_id: int) -> bool:
-        pass
+    async def delete_one(self, obj_id: int) -> bool: ...
+
+    @abstractmethod
+    async def update_one(self, id: int, data: dict) -> Optional[T]: ...
 
 
-class SQLAlchemyRepository(AbstractRepository[T, dict]):
+class SQLAlchemyRepository(AbstractRepository[T]):
     """Реализация репозитория на SQLAlchemy."""
 
     model: Type[T]
-    SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
     def __init__(self, model: Type[T]):
         self.model = model
 
-    async def create_one(self, obj_in: dict) -> T:
+    async def create_one(self, data: dict) -> T:
         """Создаёт одну запись и возвращает модель."""
-        async with self.SessionLocal() as session:
-            statement = insert(self.model).values(**obj_in).returning(self.model)
+        async with Session() as session:
+            statement = insert(self.model).values(**data).returning(self.model)
             result = await session.execute(statement)
             await session.commit()
             return result.scalar_one()
@@ -69,7 +64,7 @@ class SQLAlchemyRepository(AbstractRepository[T, dict]):
         order_by: Optional[str] = None,
     ) -> list[T]:
         """Возвращает список всех записей с возможной фильтрацией и сортировкой."""
-        async with self.SessionLocal() as session:
+        async with Session() as session:
             statement = select(self.model)
 
             if filter_clause is not None:
@@ -90,8 +85,7 @@ class SQLAlchemyRepository(AbstractRepository[T, dict]):
 
     async def read_one(self, obj_id: Any) -> T | None:
         """Возвращает одну запись по идентификатору (если поле id существует)."""
-        async with self.SessionLocal() as session:
-            # если у модели нет поля id — просто не фильтруем
+        async with Session() as session:
             id_column = getattr(self.model, "id", None)
             if id_column is None:
                 raise AttributeError(
@@ -104,7 +98,7 @@ class SQLAlchemyRepository(AbstractRepository[T, dict]):
 
     async def delete_one(self, obj_id: int) -> bool:
         """Удаляет запись по id, если поле id существует у модели."""
-        async with self.SessionLocal() as session:
+        async with Session() as session:
             id_column = getattr(self.model, "id", None)
             if id_column is None:
                 raise AttributeError(
@@ -115,3 +109,22 @@ class SQLAlchemyRepository(AbstractRepository[T, dict]):
             result = await session.execute(statement)
             await session.commit()
             return bool(getattr(result, "rowcount", 0))
+
+    async def update_one(self, id: int, data: dict) -> Optional[T]:
+        async with Session() as session:
+            attribute = "id"
+            id_column = getattr(self.model, attribute, None)
+            if id_column is None:
+                raise AttributeError(
+                    f"Model {self.model.__name__} does not have an {attribute} attribute."
+                )
+
+            statement = (
+                update(self.model)
+                .where(id_column == id)
+                .values(**data)
+                .returning(self.model)
+            )
+            res = await session.execute(statement)
+            await session.commit()
+            return res.scalar_one_or_none()
