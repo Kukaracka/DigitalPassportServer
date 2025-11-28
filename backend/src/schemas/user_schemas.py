@@ -33,6 +33,7 @@ class UserCreateSchema(BaseModel):
 
 
 class UserReadSchema(UserSchema):
+    id: int
     username: str
     email: EmailStr
     first_name: str
