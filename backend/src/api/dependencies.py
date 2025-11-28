@@ -7,6 +7,7 @@ from database.models import UserModel
 from repositories.user_repository import UserRepository
 from dotenv import load_dotenv
 
+from services.auth_service import AuthService
 from services.user_service import UserService
 
 load_dotenv()
@@ -79,7 +80,14 @@ async def get_current_authorised_user(
 async def get_user_repository() -> UserRepository:
     return UserRepository()
 
+
 async def get_user_service(
-    user_repo: UserRepository = Depends(get_user_repository)
+    user_repo: UserRepository = Depends(get_user_repository),
 ) -> UserService:
     return UserService(user_repo)
+
+
+async def get_auth_service(
+    user_repo: UserRepository = Depends(get_user_repository),
+):
+    return AuthService(user_repo)
