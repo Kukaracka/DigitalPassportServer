@@ -41,6 +41,13 @@ class UserReadSchema(UserSchema):
     phone_number: str
 
 
+class UserUpdateSchema(BaseModel):
+    username: str
+    email: EmailStr
+    first_name: str
+
+
+
 class TokenResponseSchema(BaseModel):
     access_token: str
 
