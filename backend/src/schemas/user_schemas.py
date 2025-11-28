@@ -45,6 +45,9 @@ class UserUpdateSchema(BaseModel):
     username: str
     email: EmailStr
     first_name: str
+    last_name: str
+    father_name: str
+    phone_number: str
 
 
 
