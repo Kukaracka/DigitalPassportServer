@@ -2,13 +2,13 @@ from authx import AuthX
 from fastapi import HTTPException, security
 
 from database.models import UserModel
-from schemas.user_schemas import UserCreateSchema, UserReadSchema
-from utils.repository import SQLAlchemyRepository
+from repositories.user_repository import UserRepository
+from schemas.user_schemas import UserCreateSchema
 
 
 class AuthService:
-    def __init__(self, users_repo_cls: SQLAlchemyRepository[UserModel]):
-        self.users_repo: SQLAlchemyRepository = users_repo_cls
+    def __init__(self, users_repo_cls: UserRepository):
+        self.users_repo: UserRepository = users_repo_cls
         self.security = security
 
     async def authenticate_user(
@@ -31,7 +31,7 @@ class AuthService:
         existing_user = await self.users_repo.get_by_username(user_data.username)
         if existing_user:
             raise HTTPException(
-                status_code=409, detail="User with this username уже существует"
+                status_code=409, detail="User with this username already exist"
             )
 
         user_dict = user_data.model_dump()
