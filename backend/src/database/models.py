@@ -1,4 +1,4 @@
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -7,7 +7,11 @@ DATABASE_USL = (
 )
 
 engine = create_async_engine(DATABASE_USL, echo=True)
-Session = async_sessionmaker(engine, expire_on_commit=False)
+Session: async_sessionmaker[AsyncSession] = async_sessionmaker(
+    engine,
+    expire_on_commit=False,
+    class_=AsyncSession,
+)
 
 
 class Base(DeclarativeBase):
