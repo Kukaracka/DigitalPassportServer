@@ -7,6 +7,8 @@ from database.models import UserModel
 from repositories.user_repository import UserRepository
 from dotenv import load_dotenv
 
+from services.user_service import UserService
+
 load_dotenv()
 
 
@@ -61,7 +63,7 @@ async def get_current_authorised_user(
         )
 
     # Создаём экземпляр репозитория
-    user_repo = UserRepository(UserModel)
+    user_repo = UserRepository()
     user = await user_repo.read_one(user_id)
 
     # Проверяем, что пользователь найден
@@ -72,3 +74,12 @@ async def get_current_authorised_user(
         )
 
     return user
+
+
+async def get_user_repository() -> UserRepository:
+    return UserRepository()
+
+async def get_user_service(
+    user_repo: UserRepository = Depends(get_user_repository)
+) -> UserService:
+    return UserService(user_repo)
