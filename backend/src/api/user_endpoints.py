@@ -58,21 +58,21 @@ async def detele_user(user_id):
     return {"user_id": user_id, "deleted": True}
 
 
-@user_router.patch(
-    "/{user_id}",
+@user_router.put(
+    "/",
     response_description="User has been updated",
     response_model=UserReadSchema,
 )
 async def update_user(
-    user_id: int,
-    user_data: UserUpdateSchema,
+    user_update: UserUpdateSchema,
+    user: UserModel = Depends(get_current_authorised_user),
     user_service: UserService = Depends(get_user_service),
 ):
     """
     Частичное обновление информации о пользователе
     """
     try:
-        updated_user = await user_service.update_user(user_id, user_data)
+        updated_user = await user_service.update_user(user.id, user_update)
         if not updated_user:
             raise HTTPException(status_code=404, detail="User not found")
         return updated_user
