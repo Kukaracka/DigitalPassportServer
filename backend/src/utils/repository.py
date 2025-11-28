@@ -12,13 +12,18 @@ from typing import (
 
 from sqlalchemy import asc, delete, desc, insert, select, update
 from sqlalchemy.sql import ColumnElement
-from src.database.models import Session
+from database.models import Session
 
 T = TypeVar("T")
 
 
 class AbstractRepository(ABC, Generic[T]):
     """Базовый интерфейс репозитория."""
+
+    model: Type[T]
+
+    def __init__(self, model: Type[T]):
+        self.model = model
 
     @abstractmethod
     async def create_one(self, data: dict) -> T: ...
