@@ -13,13 +13,13 @@ function App() {
     error, 
     login, 
     register, 
+    updateUser,
     logout,
     clearError 
   } = useAuth();
 
   const [currentView, setCurrentView] = useState('login');
 
-  // Очищаем ошибки при переключении между формами
   useEffect(() => {
     if (error) {
       clearError();
@@ -29,21 +29,25 @@ function App() {
   const handleLogin = async (credentials) => {
     try {
       await login(credentials);
-      // Успешный логин автоматически перенаправит в dashboard через состояние isAuthenticated
     } catch (error) {
-      // Ошибка уже обработана в хуке
-      console.error('Login failed:', error);
+      // Ошибка обрабатывается в useAuth
     }
   };
 
   const handleRegister = async (userData) => {
     try {
       await register(userData);
-      // После успешной регистрации переключаем на форму логина
       setCurrentView('login');
     } catch (error) {
-      // Ошибка уже обработана в хуке
-      console.error('Registration failed:', error);
+      // Ошибка обрабатывается в useAuth
+    }
+  };
+
+  const handleUpdateUser = async (userData) => {
+    try {
+      await updateUser(userData);
+    } catch (error) {
+      throw error; // Пробрасываем ошибку для обработки в компоненте
     }
   };
 
@@ -60,12 +64,11 @@ function App() {
     setCurrentView('register');
   };
 
-  // Показываем загрузку только при первоначальной проверке auth
-  if (loading && !isAuthenticated) {
+  if (loading) {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>
-        <p>Проверка авторизации...</p>
+        <p>Загрузка...</p>
       </div>
     );
   }
@@ -91,7 +94,11 @@ function App() {
       )}
       
       {isAuthenticated ? (
-        <Dashboard user={user} onLogout={handleLogout} />
+        <Dashboard 
+          user={user} 
+          onLogout={handleLogout}
+          onUpdateUser={handleUpdateUser}
+        />
       ) : (
         currentView === 'login' ? (
           <Login 

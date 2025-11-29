@@ -67,6 +67,27 @@ export const useAuth = () => {
     }
   };
 
+  const updateUser = async (userData) => {
+    try {
+      setError(null);
+      setLoading(true);
+      
+      const result = await AuthAPI.updateUser(userData);
+      
+      // Обновляем данные пользователя в состоянии
+      const updatedUserData = await AuthAPI.getCurrentUser();
+      setUser(updatedUserData);
+      
+      return result;
+    } catch (error) {
+      const errorMessage = error.message;
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = async () => {
     setIsAuthenticated(false);
     setUser(null);
@@ -85,6 +106,7 @@ export const useAuth = () => {
     error,
     login,
     register,
+    updateUser,
     logout,
     checkAuth,
     clearError

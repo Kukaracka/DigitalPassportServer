@@ -2,14 +2,19 @@ import React, { useState } from 'react';
 import Profile from './Profile';
 import './Dashboard.css';
 
-const Dashboard = ({ user, onLogout }) => {
+const Dashboard = ({ user, onLogout, onUpdateUser }) => {
   const [currentView, setCurrentView] = useState('dashboard');
 
-  // Теперь user - это один объект, а не массив
   const currentUser = user;
 
   if (currentView === 'profile') {
-    return <Profile user={user} onBack={() => setCurrentView('dashboard')} />;
+    return (
+      <Profile 
+        user={user} 
+        onBack={() => setCurrentView('dashboard')}
+        onUpdateUser={onUpdateUser}
+      />
+    );
   }
 
   return (

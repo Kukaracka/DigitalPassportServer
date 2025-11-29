@@ -48,20 +48,33 @@ class AuthAPI {
 
   async getCurrentUser() {
     try {
-      // Пробуем новый эндпоинт /users/me
       const response = await api.get('/users/me');
       return response.data;
     } catch (error) {
-      // Если новый эндпоинт не работает, пробуем старый
       console.log('⚠️ /users/me failed, trying /users/');
       const response = await api.get('/users/');
       const users = response.data;
       
-      // Берем первого пользователя как fallback
       if (users && users.length > 0) {
         return users[0];
       }
       throw new Error('No users found');
+    }
+  }
+
+  async updateUser(userData) {
+    try {
+      const response = await api.put('/users/', {
+        username: userData.username,
+        email: userData.email,
+        first_name: userData.firstName,
+        last_name: userData.lastName,
+        father_name: userData.fatherName || '',
+        phone_number: userData.phoneNumber || ''
+      });
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
     }
   }
 

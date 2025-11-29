@@ -1,9 +1,46 @@
-import React from 'react';
+import React, { useState } from 'react';
+import EditProfile from './EditProfile';
 import './Profile.css';
 
-const Profile = ({ user, onBack }) => {
+const Profile = ({ user, onBack, onUpdateUser }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [updateError, setUpdateError] = useState('');
+
   const userData = user || {};
 
+  const handleEdit = () => {
+    setIsEditing(true);
+    setUpdateError('');
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setUpdateError('');
+  };
+
+  const handleUpdate = async (userData) => {
+    try {
+      await onUpdateUser(userData);
+      setIsEditing(false);
+      setUpdateError('');
+    } catch (error) {
+      setUpdateError(error.message);
+    }
+  };
+
+  // Если в режиме редактирования, показываем форму
+  if (isEditing) {
+    return (
+      <EditProfile 
+        user={user}
+        onUpdate={handleUpdate}
+        onCancel={handleCancelEdit}
+        error={updateError}
+      />
+    );
+  }
+
+  // Обычный просмотр профиля
   return (
     <div className="profile">
       <header className="profile-header">
@@ -62,7 +99,7 @@ const Profile = ({ user, onBack }) => {
         </div>
         
         <div className="profile-actions">
-          <button className="action-button edit-button">
+          <button className="action-button edit-button" onClick={handleEdit}>
             ✏️ Редактировать профиль
           </button>
         </div>
