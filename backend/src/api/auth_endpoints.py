@@ -110,3 +110,14 @@ async def google_callback(
     return RedirectResponse(
         f"{os.getenv('FRONTEND_URL')}/auth/success?token={jwt_token}"
     )
+
+
+# В auth_endpoints.py или debug_endpoints.py
+@auth_router.post("/migrate-passwords", include_in_schema=False)
+async def migrate_passwords_endpoint(
+    auth_service: AuthService = Depends(get_auth_service),
+    # Добавьте проверку админа для безопасности
+):
+    """Мигрирует пароли (только для разработки)"""
+    await auth_service.migrate_passwords()
+    return {"message": "Password migration completed"}
