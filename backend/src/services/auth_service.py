@@ -9,6 +9,7 @@ from schemas.user_schemas import UserCreateSchema
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+
 class AuthService:
     def __init__(self, users_repo_cls: UserRepository):
         self.users_repo: UserRepository = users_repo_cls
@@ -53,10 +54,10 @@ class AuthService:
     async def migrate_passwords(self):
         """Мигрирует все незашифрованные пароли"""
         users = await self.users_repo.read_all()
-        
+
         for user in users:
             # Проверяем, не хэширован ли уже пароль
-            if not user.password.startswith('$2b$'):
+            if not user.password.startswith("$2b$"):
                 hashed_password = self._get_password_hash(user.password)
                 await self.users_repo.update_one(user.id, {"password": hashed_password})
                 print(f"Migrated password for user: {user.username}")
