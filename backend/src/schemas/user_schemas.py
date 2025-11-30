@@ -51,7 +51,6 @@ class UserUpdateSchema(BaseModel):
     phone_number: str
 
 
-
 class TokenResponseSchema(BaseModel):
     access_token: str
 
