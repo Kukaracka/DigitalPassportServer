@@ -27,8 +27,6 @@ const Profile = ({ user, onBack, onUpdateUser }) => {
       setUpdateError(error.message);
     }
   };
-
-  // Если в режиме редактирования, показываем форму
   if (isEditing) {
     return (
       <EditProfile 
@@ -40,7 +38,6 @@ const Profile = ({ user, onBack, onUpdateUser }) => {
     );
   }
 
-  // Обычный просмотр профиля
   return (
     <div className="profile">
       <header className="profile-header">

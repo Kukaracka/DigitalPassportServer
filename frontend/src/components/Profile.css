@@ -152,7 +152,6 @@
   border-color: transparent;
 }
 
-/* Адаптивность */
 @media (max-width: 768px) {
   .profile-content {
     padding: 20px 15px;
@@ -206,7 +205,6 @@
   }
 }
 
-/* Для очень маленьких экранов */
 @media (max-width: 320px) {
   .profile-content {
     padding: 15px 10px;
@@ -230,7 +228,6 @@
   }
 }
 
-/* Для больших экранов */
 @media (min-width: 1440px) {
   .profile-content {
     max-width: 700px;
@@ -247,7 +244,6 @@
   }
 }
 
-/* Для планшетов в альбомной ориентации */
 @media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
   .profile-content {
     padding: 20px;

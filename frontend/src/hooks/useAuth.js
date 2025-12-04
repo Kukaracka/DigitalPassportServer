@@ -74,7 +74,6 @@ export const useAuth = () => {
       
       const result = await AuthAPI.updateUser(userData);
       
-      // Обновляем данные пользователя в состоянии
       const updatedUserData = await AuthAPI.getCurrentUser();
       setUser(updatedUserData);
       

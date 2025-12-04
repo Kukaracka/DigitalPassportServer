@@ -66,7 +66,6 @@ const EditProfile = ({ user, onUpdate, onCancel, error }) => {
     try {
       await onUpdate(formData);
     } catch (error) {
-      // Ошибка обрабатывается в хуке
     } finally {
       setLoading(false);
     }

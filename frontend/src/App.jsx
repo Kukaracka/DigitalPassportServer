@@ -30,7 +30,6 @@ function App() {
     try {
       await login(credentials);
     } catch (error) {
-      // Ошибка обрабатывается в useAuth
     }
   };
 
@@ -39,7 +38,6 @@ function App() {
       await register(userData);
       setCurrentView('login');
     } catch (error) {
-      // Ошибка обрабатывается в useAuth
     }
   };
 
@@ -47,7 +45,7 @@ function App() {
     try {
       await updateUser(userData);
     } catch (error) {
-      throw error; // Пробрасываем ошибку для обработки в компоненте
+      throw error; 
     }
   };
 

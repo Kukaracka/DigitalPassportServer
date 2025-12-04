@@ -38,7 +38,6 @@ body {
   position: relative;
 }
 
-/* Улучшенная полоса прокрутки */
 body::-webkit-scrollbar {
   width: 6px;
 }
@@ -56,12 +55,10 @@ body::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
 
-/* Предотвращаем горизонтальный скролл */
 body {
   overflow-x: hidden;
 }
 
-/* Улучшаем рендеринг для производительности */
 .App {
   transform: translateZ(0);
   backface-visibility: hidden;

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Profile from './Profile';
+import Products from './Products';
 import './Dashboard.css';
 
 const Dashboard = ({ user, onLogout, onUpdateUser }) => {
@@ -13,6 +14,15 @@ const Dashboard = ({ user, onLogout, onUpdateUser }) => {
         user={user} 
         onBack={() => setCurrentView('dashboard')}
         onUpdateUser={onUpdateUser}
+      />
+    );
+  }
+
+  if (currentView === 'products') {
+    return (
+      <Products 
+        user={user}
+        onBack={() => setCurrentView('dashboard')}
       />
     );
   }
@@ -41,6 +51,15 @@ const Dashboard = ({ user, onLogout, onUpdateUser }) => {
         >
           <h3>👤 Профиль</h3>
           <p>Просмотр и редактирование личной информации</p>
+          <div className="card-hint">Нажмите чтобы открыть</div>
+        </div>
+        
+        <div 
+          className="dashboard-card clickable-card"
+          onClick={() => setCurrentView('products')}
+        >
+          <h3>📦 Мои продукты</h3>
+          <p>Управление вашей техникой и устройствами</p>
           <div className="card-hint">Нажмите чтобы открыть</div>
         </div>
         

@@ -1,6 +1,4 @@
-// src/utils/cookieManager.js
 export const clearAuthCookies = () => {
-  // Очищаем все возможные auth cookies
   const cookies = [
     'my_access_token',
     'access_token',
