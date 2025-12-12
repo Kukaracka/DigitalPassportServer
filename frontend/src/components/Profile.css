@@ -2,17 +2,22 @@
   min-height: 100vh;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .profile-header {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  padding: 15px 20px;
-  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+  padding: 12px 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 16px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .back-button {
@@ -20,11 +25,13 @@
   color: white;
   border: none;
   padding: 8px 16px;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 0.9rem;
   transition: all 0.3s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .back-button:hover {
@@ -35,73 +42,80 @@
 .profile-header h1 {
   color: #2d3748;
   margin: 0;
-  font-size: 20px;
+  font-size: 1.3rem;
   font-weight: 700;
   background: linear-gradient(135deg, #667eea, #764ba2);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
 }
 
 .profile-content {
-  padding: 30px 20px;
-  max-width: 600px;
+  padding: 16px;
+  max-width: 800px;
   margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .profile-card {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(15px);
-  padding: 30px;
-  border-radius: 20px;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.3);
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   text-align: center;
 }
 
 .profile-avatar {
-  width: 80px;
-  height: 80px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
   background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: bold;
-  margin: 0 auto 20px;
+  margin: 0 auto 16px;
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
 }
 
 .profile-info h2 {
   color: #2d3748;
-  margin: 0 0 5px 0;
-  font-size: 24px;
+  margin: 0 0 4px 0;
+  font-size: 1.4rem;
   font-weight: 700;
 }
 
 .profile-username {
   color: #718096;
-  margin: 0 0 25px 0;
-  font-size: 16px;
+  margin: 0 0 20px 0;
+  font-size: 0.95rem;
 }
 
 .profile-details {
   text-align: left;
   background: rgba(248, 250, 252, 0.8);
-  padding: 20px;
-  border-radius: 12px;
+  padding: 16px;
+  border-radius: 10px;
   border: 1px solid rgba(226, 232, 240, 0.6);
 }
 
 .detail-item {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   padding: 10px 0;
   border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+  gap: 10px;
 }
 
 .detail-item:last-child {
@@ -111,39 +125,45 @@
 .detail-label {
   color: #4a5568;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  min-width: 120px;
 }
 
 .detail-value {
   color: #2d3748;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 0.9rem;
+  text-align: right;
+  word-break: break-word;
+  flex: 1;
 }
 
 .profile-actions {
   display: flex;
-  gap: 15px;
+  gap: 12px;
   justify-content: center;
   flex-wrap: wrap;
 }
 
 .action-button {
-  padding: 12px 20px;
+  padding: 10px 16px;
   border: 2px solid #e2e8f0;
-  border-radius: 10px;
+  border-radius: 8px;
   background: white;
   color: #4a5568;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 14px;
+  font-size: 0.9rem;
+  flex: 1;
+  min-width: 180px;
+  text-align: center;
 }
 
 .action-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-  border-color: #667eea;
-  color: #667eea;
 }
 
 .edit-button:hover {
@@ -153,103 +173,160 @@
 }
 
 @media (max-width: 768px) {
+  .profile-header {
+    padding: 10px 12px;
+    gap: 12px;
+  }
+  
+  .profile-header h1 {
+    font-size: 1.1rem;
+  }
+  
+  .back-button {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+  
   .profile-content {
-    padding: 20px 15px;
+    padding: 12px;
   }
   
   .profile-card {
-    padding: 25px 20px;
+    padding: 16px;
   }
   
-  .profile-actions {
-    flex-direction: column;
+  .profile-avatar {
+    width: 60px;
+    height: 60px;
+    font-size: 1.3rem;
+    margin-bottom: 12px;
   }
   
-  .action-button {
-    width: 100%;
+  .profile-info h2 {
+    font-size: 1.2rem;
+  }
+  
+  .profile-username {
+    font-size: 0.9rem;
+    margin-bottom: 16px;
+  }
+  
+  .profile-details {
+    padding: 12px;
   }
   
   .detail-item {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 5px;
+    align-items: stretch;
+    gap: 4px;
+    padding: 8px 0;
+  }
+  
+  .detail-label {
+    min-width: auto;
+    font-size: 0.85rem;
   }
   
   .detail-value {
-    word-break: break-all;
+    text-align: left;
+    font-size: 0.85rem;
+  }
+  
+  .profile-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .action-button {
+    min-width: auto;
+    width: 100%;
+    padding: 10px;
   }
 }
 
 @media (max-width: 480px) {
   .profile-header {
-    padding: 12px 15px;
+    padding: 8px 10px;
   }
   
   .profile-header h1 {
-    font-size: 18px;
+    font-size: 1rem;
   }
   
   .back-button {
-    padding: 6px 12px;
-    font-size: 13px;
+    padding: 5px 10px;
+    font-size: 0.8rem;
+  }
+  
+  .profile-content {
+    padding: 10px;
+  }
+  
+  .profile-card {
+    padding: 14px;
   }
   
   .profile-avatar {
-    width: 70px;
-    height: 70px;
-    font-size: 20px;
+    width: 50px;
+    height: 50px;
+    font-size: 1.1rem;
   }
   
   .profile-info h2 {
-    font-size: 20px;
+    font-size: 1.1rem;
   }
 }
 
 @media (max-width: 320px) {
-  .profile-content {
-    padding: 15px 10px;
+  .profile-header {
+    padding: 6px 8px;
   }
   
-  .profile-card {
-    padding: 20px 15px;
+  .profile-header h1 {
+    font-size: 0.9rem;
+  }
+  
+  .back-button {
+    padding: 4px 8px;
+    font-size: 0.75rem;
   }
   
   .profile-details {
-    padding: 15px;
-  }
-  
-  .detail-item {
-    padding: 8px 0;
+    padding: 10px;
   }
   
   .detail-label,
   .detail-value {
-    font-size: 13px;
+    font-size: 0.8rem;
   }
 }
 
-@media (min-width: 1440px) {
+@media (min-width: 1200px) {
   .profile-content {
-    max-width: 700px;
+    padding: 24px;
+    max-width: 900px;
   }
   
   .profile-card {
-    padding: 40px;
+    padding: 30px;
   }
   
   .profile-avatar {
-    width: 100px;
-    height: 100px;
-    font-size: 28px;
-  }
-}
-
-@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
-  .profile-content {
-    padding: 20px;
+    width: 80px;
+    height: 80px;
+    font-size: 1.8rem;
   }
   
-  .profile-card {
-    padding: 25px;
+  .profile-info h2 {
+    font-size: 1.6rem;
+  }
+  
+  .profile-username {
+    font-size: 1.1rem;
+  }
+  
+  .detail-label,
+  .detail-value {
+    font-size: 1rem;
   }
 }

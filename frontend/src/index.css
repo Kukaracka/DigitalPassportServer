@@ -2,6 +2,7 @@
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
+  font-size: 14px;
 }
 
 body {
@@ -10,4 +11,44 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+}
+
+@media (max-width: 360px) {
+  :root {
+    font-size: 12px;
+  }
+}
+
+@media (min-width: 1440px) {
+  :root {
+    font-size: 16px;
+  }
+}
+
+* {
+  max-width: 100%;
+}
+
+body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
