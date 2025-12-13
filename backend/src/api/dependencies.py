@@ -4,10 +4,12 @@ from authx.exceptions import JWTDecodeError
 from fastapi import Depends, HTTPException, Request, status
 
 from database.models import UserModel
+from repositories.product_repository import ProductRepository
 from repositories.user_repository import UserRepository
 from dotenv import load_dotenv
 
 from services.auth_service import AuthService
+from services.product_service import ProductService
 from services.user_service import UserService
 
 load_dotenv()
@@ -81,6 +83,11 @@ async def get_user_repository() -> UserRepository:
     return UserRepository()
 
 
+async def get_product_repository() -> ProductRepository:
+    return ProductRepository()
+
+
+
 async def get_user_service(
     user_repo: UserRepository = Depends(get_user_repository),
 ) -> UserService:
@@ -91,3 +98,7 @@ async def get_auth_service(
     user_repo: UserRepository = Depends(get_user_repository),
 ):
     return AuthService(user_repo)
+
+async def get_product_service(
+    product_repo: ProductRepository = Depends(get_product_repository)):
+    return ProductService(product_repo)
