@@ -1,5 +1,5 @@
-from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from typing import List
+from fastapi import APIRouter, Depends, status, Query
 
 from api.dependencies import get_current_authorised_user, get_product_service
 from database.models import UserModel
