@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Optional
 from fastapi import HTTPException, status
 
@@ -31,6 +32,14 @@ class ProductService:
 
         product_dict = product_data.model_dump()
         product_dict["owner_id"] = owner_id
+        
+        # Убираем часовой пояс из datetime объектов
+        now = datetime.now()
+        if now.tzinfo is not None:
+            now = now.replace(tzinfo=None)
+        
+        product_dict["created_at"] = now
+        product_dict["updated_at"] = now
 
         product_id = await self.product_repo.create_one(product_dict)
 
