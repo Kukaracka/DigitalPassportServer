@@ -103,6 +103,14 @@ class ProductService:
                 )
 
         update_dict = update_data.model_dump(exclude_unset=True)
+        
+        # Убираем часовой пояс из datetime для updated_at
+        now = datetime.now()
+        if now.tzinfo is not None:
+            now = now.replace(tzinfo=None)
+        
+        update_dict["updated_at"] = now
+        
         await self.product_repo.update_one(product_id, update_dict)
 
         updated_product = await self.product_repo.read_one(product_id)
