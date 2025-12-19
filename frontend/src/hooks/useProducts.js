@@ -1,77 +1,67 @@
 import { useState, useEffect } from 'react';
+import ProductAPI from '../services/productAPI';
 
-export const useProducts = (userId) => {
+export const useProducts = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    if (userId) {
-      loadProducts();
-    }
-  }, [userId]);
-
-  const loadProducts = () => {
+  const loadProducts = async () => {
     setLoading(true);
     try {
-      const savedProducts = localStorage.getItem(`products_${userId}`);
-      if (savedProducts) {
-        setProducts(JSON.parse(savedProducts));
-      }
+      const userProducts = await ProductAPI.getMyProducts();
+      setProducts(userProducts);
+      setError(null);
     } catch (error) {
-      setError('Ошибка загрузки продуктов');
+      console.error('Error loading products:', error);
+      setError(error.message || 'Ошибка загрузки продуктов');
+      setProducts([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const addProduct = (productData) => {
-    return new Promise((resolve) => {
-      const newProduct = {
-        id: Date.now(),
-        createdAt: new Date().toISOString(),
-        ...productData
-      };
-      
-      const updatedProducts = [...products, newProduct];
-      setProducts(updatedProducts);
-      
-      if (userId) {
-        localStorage.setItem(`products_${userId}`, JSON.stringify(updatedProducts));
-      }
-      
-      resolve(newProduct);
-    });
+  const addProduct = async (productData) => {
+    setLoading(true);
+    try {
+      const newProduct = await ProductAPI.createProduct(productData);
+      setProducts(prev => [newProduct, ...prev]);
+      return newProduct;
+    } catch (error) {
+      console.error('Error adding product:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const updateProduct = (productId, productData) => {
-    return new Promise((resolve) => {
-      const updatedProducts = products.map(product => 
-        product.id === productId ? { ...product, ...productData } : product
+  const updateProduct = async (productId, productData) => {
+    setLoading(true);
+    try {
+      const updatedProduct = await ProductAPI.updateProduct(productId, productData);
+      setProducts(prev => 
+        prev.map(product => product.id === productId ? updatedProduct : product)
       );
-      
-      setProducts(updatedProducts);
-      
-      if (userId) {
-        localStorage.setItem(`products_${userId}`, JSON.stringify(updatedProducts));
-      }
-      
-      resolve();
-    });
+      return updatedProduct;
+    } catch (error) {
+      console.error('Error updating product:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const deleteProduct = (productId) => {
-    return new Promise((resolve) => {
-      const updatedProducts = products.filter(product => product.id !== productId);
-      
-      setProducts(updatedProducts);
-      
-      if (userId) {
-        localStorage.setItem(`products_${userId}`, JSON.stringify(updatedProducts));
-      }
-      
-      resolve();
-    });
+  const deleteProduct = async (productId) => {
+    setLoading(true);
+    try {
+      await ProductAPI.deleteProduct(productId);
+      setProducts(prev => prev.filter(product => product.id !== productId));
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getProductById = (productId) => {
@@ -92,8 +82,8 @@ export const useProducts = (userId) => {
 
   const getProductsByDateRange = (startDate, endDate) => {
     return products.filter(product => {
-      if (!product.purchaseDate) return false;
-      const purchaseDate = new Date(product.purchaseDate);
+      if (!product.purchase_date) return false;
+      const purchaseDate = new Date(product.purchase_date);
       return purchaseDate >= startDate && purchaseDate <= endDate;
     });
   };
@@ -120,13 +110,13 @@ export const useProducts = (userId) => {
           aValue = a.name?.toLowerCase() || '';
           bValue = b.name?.toLowerCase() || '';
           break;
-        case 'purchaseDate':
-          aValue = a.purchaseDate ? new Date(a.purchaseDate).getTime() : 0;
-          bValue = b.purchaseDate ? new Date(b.purchaseDate).getTime() : 0;
+        case 'purchase_date':
+          aValue = a.purchase_date ? new Date(a.purchase_date).getTime() : 0;
+          bValue = b.purchase_date ? new Date(b.purchase_date).getTime() : 0;
           break;
-        case 'createdAt':
-          aValue = new Date(a.createdAt).getTime();
-          bValue = new Date(b.createdAt).getTime();
+        case 'created_at':
+          aValue = new Date(a.created_at).getTime();
+          bValue = new Date(b.created_at).getTime();
           break;
         default:
           return 0;
@@ -167,6 +157,7 @@ export const useProducts = (userId) => {
     products,
     loading,
     error,
+    loadProducts,
     addProduct,
     updateProduct,
     deleteProduct,

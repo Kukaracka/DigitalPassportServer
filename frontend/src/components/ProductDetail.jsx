@@ -7,30 +7,24 @@ const ProductDetail = ({ product, onEdit, onDelete, onClose }) => {
 
   const formatDate = (dateString) => {
     if (!dateString) return 'Не указано';
-    return new Date(dateString).toLocaleDateString('ru-RU', {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ru-RU', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
     });
   };
 
-  const getStatusText = (status) => {
-    const statuses = {
-      'active': 'Активен',
-      'inactive': 'Неактивен',
-      'repair': 'В ремонте'
-    };
-    return statuses[status] || status;
-  };
-
-  const getStatusColor = (status) => {
-    const colors = {
-      'active': '#43e97b',
-      'inactive': '#ff6b6b',
-      'repair': '#ffa502',
-      'default': '#718096'
-    };
-    return colors[status] || colors.default;
+  const formatDateTime = (dateString) => {
+    if (!dateString) return 'Не указано';
+    const date = new Date(dateString);
+    return date.toLocaleString('ru-RU', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   const getCategoryIcon = (category) => {
@@ -101,39 +95,26 @@ const ProductDetail = ({ product, onEdit, onDelete, onClose }) => {
               <p className="product-category-detail">{product.category || 'Без категории'}</p>
             </div>
           </div>
-
-          <div 
-            className="product-status-badge" 
-            style={{ backgroundColor: getStatusColor(product.status) }}
-          >
-            {getStatusText(product.status)}
-          </div>
         </div>
 
         <div className="product-detail-info">
           <div className="info-section">
             <h3>📋 Основная информация</h3>
             <div className="info-grid">
-              {product.manufacturer && (
-                <div className="info-item">
-                  <span className="info-label">Производитель:</span>
-                  <span className="info-value">{product.manufacturer}</span>
-                </div>
-              )}
+              <div className="info-item">
+                <span className="info-label">Производитель:</span>
+                <span className="info-value">{product.manufacturer || 'Не указан'}</span>
+              </div>
               
-              {product.model && (
-                <div className="info-item">
-                  <span className="info-label">Модель:</span>
-                  <span className="info-value">{product.model}</span>
-                </div>
-              )}
+              <div className="info-item">
+                <span className="info-label">Модель:</span>
+                <span className="info-value">{product.model || 'Не указана'}</span>
+              </div>
               
-              {product.serialNumber && (
-                <div className="info-item">
-                  <span className="info-label">Серийный номер:</span>
-                  <span className="info-value">{product.serialNumber}</span>
-                </div>
-              )}
+              <div className="info-item">
+                <span className="info-label">Серийный номер:</span>
+                <span className="info-value">{product.serial_number || 'Не указан'}</span>
+              </div>
               
               <div className="info-item">
                 <span className="info-label">Цена:</span>
@@ -149,18 +130,27 @@ const ProductDetail = ({ product, onEdit, onDelete, onClose }) => {
             <div className="info-grid">
               <div className="info-item">
                 <span className="info-label">Дата покупки:</span>
-                <span className="info-value">{formatDate(product.purchaseDate)}</span>
+                <span className="info-value">{formatDate(product.purchase_date)}</span>
               </div>
               
-              <div className="info-item">
-                <span className="info-label">Гарантия до:</span>
-                <span className="info-value">{formatDate(product.warrantyUntil)}</span>
-              </div>
+              {product.warranty_until && (
+                <div className="info-item">
+                  <span className="info-label">Гарантия до:</span>
+                  <span className="info-value">{formatDate(product.warranty_until)}</span>
+                </div>
+              )}
               
               <div className="info-item">
                 <span className="info-label">Добавлен:</span>
-                <span className="info-value">{formatDate(product.createdAt)}</span>
+                <span className="info-value">{formatDateTime(product.created_at)}</span>
               </div>
+              
+              {product.updated_at && (
+                <div className="info-item">
+                  <span className="info-label">Обновлен:</span>
+                  <span className="info-value">{formatDateTime(product.updated_at)}</span>
+                </div>
+              )}
             </div>
           </div>
 

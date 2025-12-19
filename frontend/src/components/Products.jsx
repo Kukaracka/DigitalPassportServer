@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import ProductsList from './ProductsList';
 import { useProducts } from '../hooks/useProducts';
 import './Products.css';
@@ -8,6 +8,7 @@ const Products = ({ user, onBack }) => {
     products, 
     loading, 
     error, 
+    loadProducts, 
     addProduct, 
     updateProduct, 
     deleteProduct,
@@ -19,7 +20,13 @@ const Products = ({ user, onBack }) => {
     getProductsByDateRange,
     getProductsByManufacturer,
     sortProducts
-  } = useProducts(user?.id);
+  } = useProducts();
+
+  useEffect(() => {
+    if (user) {
+      loadProducts();
+    }
+  }, [user]);
 
   return (
     <div className="products-container">
@@ -46,6 +53,7 @@ const Products = ({ user, onBack }) => {
           getCategories={getCategories}
           getManufacturers={getManufacturers}
           getPriceStats={getPriceStats}
+          onRefresh={loadProducts}
         />
       </main>
     </div>

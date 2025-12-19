@@ -4,7 +4,8 @@ import './ProductCard.css';
 const ProductCard = ({ product, onClick }) => {
   const formatDate = (dateString) => {
     if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('ru-RU');
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ru-RU');
   };
 
   const getCategoryIcon = (category) => {
@@ -47,10 +48,10 @@ const ProductCard = ({ product, onClick }) => {
           </div>
         )}
         
-        {product.purchaseDate && (
+        {product.purchase_date && (
           <div className="product-info">
             <span className="info-label">Куплен:</span>
-            <span className="info-value">{formatDate(product.purchaseDate)}</span>
+            <span className="info-value">{formatDate(product.purchase_date)}</span>
           </div>
         )}
       </div>
