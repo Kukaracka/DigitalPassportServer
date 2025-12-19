@@ -11,9 +11,15 @@ const ProductsList = ({
   onAddProduct, 
   onEditProduct, 
   onDeleteProduct,
+  getProductsByCategory,
+  getProductsByPriceRange,
+  getProductsByDateRange,
+  getProductsByManufacturer,
+  sortProducts,
   getCategories = () => [],
   getManufacturers = () => [],
-  getPriceStats = () => ({ min: 0, max: 0, avg: 0 })
+  getPriceStats = () => ({ min: 0, max: 0, avg: 0 }),
+  onRefresh
 }) => {
   const [isAddingProduct, setIsAddingProduct] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -26,31 +32,52 @@ const ProductsList = ({
     startDate: '',
     endDate: ''
   });
-  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortBy, setSortBy] = useState('created_at');
   const [sortOrder, setSortOrder] = useState('desc');
 
- 
+  // Получаем уникальные категории и производители
   const categories = ['all', ...getCategories()];
   const manufacturers = ['all', ...getManufacturers()];
   const priceStats = getPriceStats();
+
+  useEffect(() => {
+    if (error) {
+      console.error('Products error:', error);
+    }
+  }, [error]);
 
   const handleProductClick = (product) => {
     setSelectedProduct(product);
   };
 
-  const handleAddProduct = (productData) => {
-    onAddProduct(productData);
-    setIsAddingProduct(false);
+  const handleAddProduct = async (productData) => {
+    try {
+      await onAddProduct(productData);
+      setIsAddingProduct(false);
+      if (onRefresh) onRefresh();
+    } catch (error) {
+      console.error('Error adding product:', error);
+    }
   };
 
-  const handleEditProduct = (productId, productData) => {
-    onEditProduct(productId, productData);
-    setSelectedProduct(null);
+  const handleEditProduct = async (productId, productData) => {
+    try {
+      await onEditProduct(productId, productData);
+      setSelectedProduct(null);
+      if (onRefresh) onRefresh();
+    } catch (error) {
+      console.error('Error editing product:', error);
+    }
   };
 
-  const handleDeleteProduct = (productId) => {
-    onDeleteProduct(productId);
-    setSelectedProduct(null);
+  const handleDeleteProduct = async (productId) => {
+    try {
+      await onDeleteProduct(productId);
+      setSelectedProduct(null);
+      if (onRefresh) onRefresh();
+    } catch (error) {
+      console.error('Error deleting product:', error);
+    }
   };
 
   const handleCloseDetail = () => {
@@ -77,8 +104,17 @@ const ProductsList = ({
       startDate: '',
       endDate: ''
     });
-    setSortBy('createdAt');
+    setSortBy('created_at');
     setSortOrder('desc');
+  };
+
+  const handleSortChange = (field) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('desc');
+    }
   };
 
   // Функция для фильтрации продуктов
@@ -104,8 +140,8 @@ const ProductsList = ({
       }
 
       // Фильтр по дате покупки
-      if (product.purchaseDate) {
-        const purchaseDate = new Date(product.purchaseDate);
+      if (product.purchase_date) {
+        const purchaseDate = new Date(product.purchase_date);
         
         if (filters.startDate) {
           const startDate = new Date(filters.startDate);
@@ -116,7 +152,7 @@ const ProductsList = ({
         
         if (filters.endDate) {
           const endDate = new Date(filters.endDate);
-          endDate.setHours(23, 59, 59, 999); 
+          endDate.setHours(23, 59, 59, 999); // Устанавливаем конец дня
           if (purchaseDate > endDate) {
             return false;
           }
@@ -129,6 +165,11 @@ const ProductsList = ({
 
   // Функция для сортировки продуктов
   const getSortedProducts = (productsToSort) => {
+    if (sortProducts) {
+      return sortProducts(productsToSort, sortBy, sortOrder);
+    }
+
+    // Простая сортировка если функция не предоставлена
     return [...productsToSort].sort((a, b) => {
       let aValue, bValue;
       
@@ -141,26 +182,17 @@ const ProductsList = ({
           aValue = a.name?.toLowerCase() || '';
           bValue = b.name?.toLowerCase() || '';
           break;
-        case 'purchaseDate':
-          aValue = a.purchaseDate ? new Date(a.purchaseDate).getTime() : 0;
-          bValue = b.purchaseDate ? new Date(b.purchaseDate).getTime() : 0;
+        case 'purchase_date':
+          aValue = a.purchase_date ? new Date(a.purchase_date).getTime() : 0;
+          bValue = b.purchase_date ? new Date(b.purchase_date).getTime() : 0;
           break;
-        default: // 'createdAt'
-          aValue = new Date(a.createdAt).getTime();
-          bValue = new Date(b.createdAt).getTime();
+        default: // 'created_at'
+          aValue = new Date(a.created_at).getTime();
+          bValue = new Date(b.created_at).getTime();
       }
       
       return sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
     });
-  };
-
-  const handleSortChange = (field) => {
-    if (sortBy === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(field);
-      setSortOrder('desc');
-    }
   };
 
   // Получаем отфильтрованные и отсортированные продукты
@@ -191,7 +223,7 @@ const ProductsList = ({
     );
   }
 
-  if (loading) {
+  if (loading && products.length === 0) {
     return (
       <div className="loading-products">
         <div className="loading-spinner"></div>
@@ -200,11 +232,11 @@ const ProductsList = ({
     );
   }
 
-  if (error) {
+  if (error && products.length === 0) {
     return (
       <div className="error-products">
         <p>❌ {error}</p>
-        <button onClick={() => window.location.reload()}>Повторить</button>
+        <button onClick={onRefresh}>Повторить</button>
       </div>
     );
   }
@@ -330,10 +362,10 @@ const ProductsList = ({
           <label>Сортировать по:</label>
           <div className="sort-buttons">
             <button
-              className={`sort-btn ${sortBy === 'createdAt' ? 'active' : ''}`}
-              onClick={() => handleSortChange('createdAt')}
+              className={`sort-btn ${sortBy === 'created_at' ? 'active' : ''}`}
+              onClick={() => handleSortChange('created_at')}
             >
-              Дата добавления {sortBy === 'createdAt' && (sortOrder === 'asc' ? '↑' : '↓')}
+              Дата добавления {sortBy === 'created_at' && (sortOrder === 'asc' ? '↑' : '↓')}
             </button>
             <button
               className={`sort-btn ${sortBy === 'name' ? 'active' : ''}`}
@@ -348,10 +380,10 @@ const ProductsList = ({
               Цене {sortBy === 'price' && (sortOrder === 'asc' ? '↑' : '↓')}
             </button>
             <button
-              className={`sort-btn ${sortBy === 'purchaseDate' ? 'active' : ''}`}
-              onClick={() => handleSortChange('purchaseDate')}
+              className={`sort-btn ${sortBy === 'purchase_date' ? 'active' : ''}`}
+              onClick={() => handleSortChange('purchase_date')}
             >
-              Дате покупки {sortBy === 'purchaseDate' && (sortOrder === 'asc' ? '↑' : '↓')}
+              Дате покупки {sortBy === 'purchase_date' && (sortOrder === 'asc' ? '↑' : '↓')}
             </button>
           </div>
         </div>

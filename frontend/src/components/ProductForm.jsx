@@ -7,10 +7,10 @@ const ProductForm = ({ product, onSubmit, onCancel, isEditing = false }) => {
     category: '',
     manufacturer: '',
     model: '',
-    serialNumber: '',
+    serial_number: '',
     price: '',
-    purchaseDate: '',
-    warrantyUntil: '',
+    purchase_date: '',
+    warranty_until: '',
     description: '',
     notes: ''
   });
@@ -24,10 +24,10 @@ const ProductForm = ({ product, onSubmit, onCancel, isEditing = false }) => {
         category: product.category || '',
         manufacturer: product.manufacturer || '',
         model: product.model || '',
-        serialNumber: product.serialNumber || '',
+        serial_number: product.serial_number || '',
         price: product.price || '',
-        purchaseDate: product.purchaseDate ? product.purchaseDate.split('T')[0] : '',
-        warrantyUntil: product.warrantyUntil ? product.warrantyUntil.split('T')[0] : '',
+        purchase_date: product.purchase_date ? product.purchase_date.split('T')[0] : '',
+        warranty_until: product.warranty_until ? product.warranty_until.split('T')[0] : '',
         description: product.description || '',
         notes: product.notes || ''
       });
@@ -51,17 +51,31 @@ const ProductForm = ({ product, onSubmit, onCancel, isEditing = false }) => {
       newErrors.category = 'Выберите категорию';
     }
     
-    if (formData.price && isNaN(Number(formData.price))) {
+    if (!formData.manufacturer) {
+      newErrors.manufacturer = 'Введите производителя';
+    }
+    
+    if (!formData.model) {
+      newErrors.model = 'Введите модель';
+    }
+    
+    if (!formData.serial_number) {
+      newErrors.serial_number = 'Введите серийный номер';
+    }
+    
+    if (!formData.price || isNaN(Number(formData.price)) || Number(formData.price) <= 0) {
       newErrors.price = 'Введите корректную цену';
     }
     
-    if (formData.purchaseDate && new Date(formData.purchaseDate) > new Date()) {
-      newErrors.purchaseDate = 'Дата покупки не может быть в будущем';
+    if (!formData.purchase_date) {
+      newErrors.purchase_date = 'Введите дату покупки';
+    } else if (new Date(formData.purchase_date) > new Date()) {
+      newErrors.purchase_date = 'Дата покупки не может быть в будущем';
     }
     
-    if (formData.warrantyUntil && formData.purchaseDate && 
-        new Date(formData.warrantyUntil) < new Date(formData.purchaseDate)) {
-      newErrors.warrantyUntil = 'Дата окончания гарантии не может быть раньше даты покупки';
+    if (formData.warranty_until && formData.purchase_date && 
+        new Date(formData.warranty_until) < new Date(formData.purchase_date)) {
+      newErrors.warranty_until = 'Дата окончания гарантии не может быть раньше даты покупки';
     }
     
     setErrors(newErrors);
@@ -89,9 +103,11 @@ const ProductForm = ({ product, onSubmit, onCancel, isEditing = false }) => {
     if (validateForm()) {
       const productData = {
         ...formData,
-        price: formData.price ? Number(formData.price) : null,
-        purchaseDate: formData.purchaseDate || null,
-        warrantyUntil: formData.warrantyUntil || null
+        price: Number(formData.price),
+        purchase_date: formData.purchase_date,
+        warranty_until: formData.warranty_until || null,
+        description: formData.description || null,
+        notes: formData.notes || null
       };
       
       onSubmit(productData);
@@ -143,7 +159,7 @@ const ProductForm = ({ product, onSubmit, onCancel, isEditing = false }) => {
 
         <div className="form-row">
           <div className="form-group">
-            <label htmlFor="manufacturer">Производитель</label>
+            <label htmlFor="manufacturer">Производитель *</label>
             <input
               type="text"
               id="manufacturer"
@@ -151,11 +167,13 @@ const ProductForm = ({ product, onSubmit, onCancel, isEditing = false }) => {
               value={formData.manufacturer}
               onChange={handleChange}
               placeholder="Например: Apple, Samsung"
+              className={errors.manufacturer ? 'error' : ''}
             />
+            {errors.manufacturer && <span className="error-message">{errors.manufacturer}</span>}
           </div>
           
           <div className="form-group">
-            <label htmlFor="model">Модель</label>
+            <label htmlFor="model">Модель *</label>
             <input
               type="text"
               id="model"
@@ -163,25 +181,29 @@ const ProductForm = ({ product, onSubmit, onCancel, isEditing = false }) => {
               value={formData.model}
               onChange={handleChange}
               placeholder="Например: iPhone 14 Pro"
+              className={errors.model ? 'error' : ''}
             />
+            {errors.model && <span className="error-message">{errors.model}</span>}
           </div>
         </div>
 
         <div className="form-row">
           <div className="form-group">
-            <label htmlFor="serialNumber">Серийный номер</label>
+            <label htmlFor="serial_number">Серийный номер *</label>
             <input
               type="text"
-              id="serialNumber"
-              name="serialNumber"
-              value={formData.serialNumber}
+              id="serial_number"
+              name="serial_number"
+              value={formData.serial_number}
               onChange={handleChange}
               placeholder="SN123456789"
+              className={errors.serial_number ? 'error' : ''}
             />
+            {errors.serial_number && <span className="error-message">{errors.serial_number}</span>}
           </div>
           
           <div className="form-group">
-            <label htmlFor="price">Цена (₽)</label>
+            <label htmlFor="price">Цена (₽) *</label>
             <input
               type="number"
               id="price"
@@ -199,29 +221,29 @@ const ProductForm = ({ product, onSubmit, onCancel, isEditing = false }) => {
 
         <div className="form-row">
           <div className="form-group">
-            <label htmlFor="purchaseDate">Дата покупки</label>
+            <label htmlFor="purchase_date">Дата покупки *</label>
             <input
               type="date"
-              id="purchaseDate"
-              name="purchaseDate"
-              value={formData.purchaseDate}
+              id="purchase_date"
+              name="purchase_date"
+              value={formData.purchase_date}
               onChange={handleChange}
-              className={errors.purchaseDate ? 'error' : ''}
+              className={errors.purchase_date ? 'error' : ''}
             />
-            {errors.purchaseDate && <span className="error-message">{errors.purchaseDate}</span>}
+            {errors.purchase_date && <span className="error-message">{errors.purchase_date}</span>}
           </div>
           
           <div className="form-group">
-            <label htmlFor="warrantyUntil">Гарантия до</label>
+            <label htmlFor="warranty_until">Гарантия до</label>
             <input
               type="date"
-              id="warrantyUntil"
-              name="warrantyUntil"
-              value={formData.warrantyUntil}
+              id="warranty_until"
+              name="warranty_until"
+              value={formData.warranty_until}
               onChange={handleChange}
-              className={errors.warrantyUntil ? 'error' : ''}
+              className={errors.warranty_until ? 'error' : ''}
             />
-            {errors.warrantyUntil && <span className="error-message">{errors.warrantyUntil}</span>}
+            {errors.warranty_until && <span className="error-message">{errors.warranty_until}</span>}
           </div>
         </div>
 
