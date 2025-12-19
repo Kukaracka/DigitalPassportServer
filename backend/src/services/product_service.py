@@ -9,7 +9,6 @@ from schemas.product_schemas import (
     ProductReadSchema,
     ProductListSchema,
 )
-from database.models import ProductModel
 
 
 class ProductService:
