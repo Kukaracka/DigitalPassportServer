@@ -18,7 +18,7 @@ class ProductService:
 
     async def create_product(
         self, product_data: ProductCreateSchema, owner_id: int
-    ) -> ProductReadSchema:
+    ):
         """Создать новый продукт"""
         # Проверка уникальности серийного номера
         existing_product = await self.product_repo.get_by_serial_number(
@@ -43,8 +43,7 @@ class ProductService:
 
         product_id = await self.product_repo.create_one(product_dict)
 
-        created_product = await self.product_repo.read_one(product_id)
-        return ProductReadSchema.model_validate(created_product)
+        return product_id
 
     async def get_product(
         self, product_id: int, owner_id: Optional[int] = None
