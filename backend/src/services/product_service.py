@@ -15,9 +15,7 @@ class ProductService:
     def __init__(self, product_repo: ProductRepository):
         self.product_repo: ProductRepository = product_repo
 
-    async def create_product(
-        self, product_data: ProductCreateSchema, owner_id: int
-    ):
+    async def create_product(self, product_data: ProductCreateSchema, owner_id: int):
         """Создать новый продукт"""
         # Проверка уникальности серийного номера
         existing_product = await self.product_repo.get_by_serial_number(
@@ -31,12 +29,12 @@ class ProductService:
 
         product_dict = product_data.model_dump()
         product_dict["owner_id"] = owner_id
-        
+
         # Убираем часовой пояс из datetime объектов
         now = datetime.now()
         if now.tzinfo is not None:
             now = now.replace(tzinfo=None)
-        
+
         product_dict["created_at"] = now
         product_dict["updated_at"] = now
 
@@ -102,14 +100,14 @@ class ProductService:
                 )
 
         update_dict = update_data.model_dump(exclude_unset=True)
-        
+
         # Убираем часовой пояс из datetime для updated_at
         now = datetime.now()
         if now.tzinfo is not None:
             now = now.replace(tzinfo=None)
-        
+
         update_dict["updated_at"] = now
-        
+
         await self.product_repo.update_one(product_id, update_dict)
 
         updated_product = await self.product_repo.read_one(product_id)
