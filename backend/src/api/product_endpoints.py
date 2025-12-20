@@ -30,7 +30,7 @@ async def create_product(
 
 
 @product_router.get(
-    "/my",
+    "/owner",
     response_model=List[ProductListSchema],
     response_description="User's products retrieved successfully"
 )
