@@ -19,7 +19,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT }}
           script: |
-            cd /home/izaropenis/deploy/DigitalPassport/backend/
+            cd /home/misha/deploy/DigitalPassport/backend/
             git pull origin main
             docker-compose down
             docker-compose build --no-cache
