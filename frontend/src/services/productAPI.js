@@ -20,7 +20,7 @@ class ProductAPI {
 
   async getMyProducts() {
     try {
-      const response = await api.get('/products/my');
+      const response = await api.get('/products/owner');
       return response.data;
     } catch (error) {
       throw this.handleError(error);
