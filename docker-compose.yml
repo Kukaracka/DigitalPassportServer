@@ -13,25 +13,49 @@ services:
     ports:
       - "5432:5432"
 
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    restart: always
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # Web console
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: strongpassword
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+
   backend:
     build:
       context: .
       dockerfile: backend/Dockerfile
     depends_on:
       - db
+      - minio
     environment:
       DATABASE_URL: postgresql+asyncpg://digitalpassport:digitalpassportpass@db:5432/digitalpassportdb
+
+      # S3 / MinIO настройки
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: minioadmin
+      S3_SECRET_KEY: strongpassword
+      S3_BUCKET: avatars
+
     volumes:
       - ./backend:/app
-      - ./ssl:/app/ssl  # Монтируем папку с сертификатами
+      - ./ssl:/app/ssl
     ports:
-      - "8443:8443"    # Меняем порт на HTTPS
+      - "8443:8443"
     command: [
       "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8443",
-      "--ssl-keyfile", "/app/ssl/key.pem", 
+      "--ssl-keyfile", "/app/ssl/key.pem",
       "--ssl-certfile", "/app/ssl/cert.pem",
       "--reload"
     ]
 
 volumes:
   pgdata:
+  minio_data:
+
