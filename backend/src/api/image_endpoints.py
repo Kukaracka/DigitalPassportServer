@@ -6,11 +6,11 @@ from schemas.user_schemas import UserReadSchema
 
 from api.dependencies import get_current_authorised_user, get_user_service
 
-user_router = APIRouter(prefix="/users", tags=["Users"])
+image_router = APIRouter(prefix="/users", tags=["Users"])
 storage_service = StorageService()
 
 
-@user_router.post("/me/avatar", response_description="Upload user avatar")
+@image_router.post("/me/avatar", response_description="Upload user avatar")
 async def upload_avatar(
     file: UploadFile = File(...),
     current_user: UserModel = Depends(get_current_authorised_user),
@@ -29,7 +29,7 @@ async def upload_avatar(
     return {"message": "Avatar uploaded", "avatar_filename": object_name, "avatar_url": avatar_url}
 
 
-@user_router.get("/me", response_model=UserReadSchema)
+@image_router.get("/me", response_model=UserReadSchema)
 async def get_current_user(
     current_user: UserModel = Depends(get_current_authorised_user),
     user_service: UserService = Depends(get_user_service),
