@@ -37,14 +37,14 @@ class UserCreateSchema(BaseModel):
 class UserReadSchema(BaseModel):
     id: int
     username: str
-    email: str
+    email: EmailStr
     first_name: str
     last_name: str
     father_name: str
     phone_number: str
     avatar: Optional[str] = None
-    
-    # Временно храним storage_service как внутреннее поле
+
+    # Внутреннее поле для сервиса хранилища
     _storage_service: Optional[StorageService] = None
 
     @computed_field
@@ -60,13 +60,18 @@ class UserReadSchema(BaseModel):
     def avatar_upload_url(self) -> Optional[str]:
         """URL для загрузки аватара"""
         if self._storage_service:
-            # Используем ID пользователя для генерации имени файла
             return self._storage_service.get_upload_url(self.id)
         return None
-    
+
     def set_storage_service(self, storage_service: StorageService):
         """Устанавливаем storage_service для вычисления полей"""
         self._storage_service = storage_service
+
+    model_config = ConfigDict(
+        from_attributes=True,  # В Pydantic v2 используется from_attributes вместо orm_mode
+        arbitrary_types_allowed=True,  # Разрешаем не-pydantic типы
+    )
+
 
 class UserUpdateSchema(BaseModel):
     username: str

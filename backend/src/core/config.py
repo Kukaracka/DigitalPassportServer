@@ -22,9 +22,11 @@ class Settings(BaseSettings):
     # JWT settings
     SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key")
     
+    # Разрешаем любые дополнительные поля из .env
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+        extra = "allow"  # Разрешаем дополнительные поля
 
 @lru_cache
 def get_settings() -> Settings:

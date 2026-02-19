@@ -5,6 +5,13 @@ from schemas.user_schemas import UserCreateSchema, UserReadSchema, UserUpdateSch
 from utils.repository import SQLAlchemyRepository
 
 
+from typing import Optional
+from fastapi import HTTPException
+from database.models import UserModel
+from schemas.user_schemas import UserCreateSchema, UserReadSchema, UserUpdateSchema
+from utils.repository import SQLAlchemyRepository
+
+
 class UserService:
     def __init__(self, users_repo: SQLAlchemyRepository[UserModel]):
         self.users_repo: SQLAlchemyRepository = users_repo
@@ -27,11 +34,15 @@ class UserService:
             return None
 
         # Преобразуем SQLAlchemy объект в словарь
-        user_dict = {c.name: getattr(user_obj, c.name) for c in user_obj.__table__.columns}
+        user_dict = {
+            c.name: getattr(user_obj, c.name) for c in user_obj.__table__.columns
+        }
 
         # Добавляем ссылку на аватар, если он есть
         if user_dict.get("avatar"):
-            user_dict["avatar_upload_url"] = self.storage_service.get_upload_url(user_dict["avatar"])
+            user_dict["avatar_upload_url"] = self.storage_service.get_upload_url(
+                user_dict["avatar"]
+            )
 
         return UserReadSchema.model_validate(user_dict)
 

@@ -27,21 +27,26 @@ async def create_user(
     response_description="One user retrieved successfully",
     response_model=UserReadSchema,
 )
+@user_router.get(
+    "/me",
+    response_description="One user retrieved successfully",
+    response_model=UserReadSchema,
+)
 async def get_user(
     current_user: UserModel = Depends(get_current_authorised_user),
     user_service: UserService = Depends(get_user_service),
-    storage_service: StorageService = Depends(get_storage_service),  # Добавляем зависимость
+    storage_service: StorageService = Depends(get_storage_service),
 ):
     # Получаем данные пользователя
     user_data = await user_service.read_one_user(current_user.id)
     
-    # Преобразуем в схему
-    user_schema = UserReadSchema.model_validate(user_data)
+    if not user_data:
+        raise HTTPException(status_code=404, detail="User not found")
     
     # Устанавливаем storage_service для вычисления URL
-    user_schema.set_storage_service(storage_service)
+    user_data.set_storage_service(storage_service)
     
-    return user_schema
+    return user_data
 
 
 @user_router.get(
