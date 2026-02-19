@@ -21,15 +21,24 @@ class UserService:
         users_schema = [UserReadSchema.model_validate(user) for user in user_data]
         return users_schema
 
-    async def read_one_user(self, user_id: int) -> UserReadSchema:
-        """Получить одного пользователя"""
-        user_data: UserModel | None = await self.users_repo.read_one(user_id)
-        if user_data is None:
-            raise HTTPException(status_code=404, detail="User npt found")
-        user_schema = UserReadSchema.model_validate(user_data)
-        if user_schema is None:
-            raise HTTPException(status_code=404, detail="User npt found")
-        return user_schema
+    async def read_one_user(self, user_id: int):
+        user_obj = await self.users_repo.read_one(user_id)
+        if not user_obj:
+            return None
+
+        # Преобразуем SQLAlchemy объект в словарь
+        user_dict = {c.name: getattr(user_obj, c.name) for c in user_obj.__table__.columns}
+
+        # Создаём Pydantic модель
+        user_schema = UserReadSchema.model_validate(user_dict)
+
+        # Добавляем URL аватара
+        if user_schema.avatar:
+            user_schema_dict = user_schema.model_dump()
+            user_schema_dict["avatar_upload_url"] = self.storage_service.get_upload_url(user_schema.avatar)
+            return user_schema_dict
+
+        return user_schema.model_dump()
 
     async def update_user(
         self, id: int, user_update: UserUpdateSchema
