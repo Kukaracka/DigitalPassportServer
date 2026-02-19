@@ -7,7 +7,8 @@ from authx.exceptions import JWTDecodeError
 from fastapi import Depends, HTTPException, Request, status
 from functools import lru_cache
 
-from app.core.config import get_settings
+# Импортируем из core.config (который должен быть в src/core/config.py)
+from core.config import get_settings
 from database.models import UserModel
 from repositories.product_repository import ProductRepository
 from repositories.user_repository import UserRepository
@@ -16,9 +17,10 @@ from dotenv import load_dotenv
 from services.auth_service import AuthService
 from services.product_service import ProductService
 from services.user_service import UserService
-from services.storage_service import StorageService  # Импортируем StorageService
+from services.storage_service import StorageService
 
-load_dotenv()
+# Загружаем .env из src директории
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'))
 
 
 # JWT Configuration
