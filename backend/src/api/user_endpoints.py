@@ -23,15 +23,14 @@ async def create_user(
 
 @user_router.get(
     "/me",
-    response_description="One user retrieved successfully",
     response_model=UserReadSchema,
+    response_description="Get current user with avatar URL"
 )
 async def get_user(
     current_user: UserModel = Depends(get_current_authorised_user),
     user_service: UserService = Depends(get_user_service),
 ):
-    user_data = await user_service.read_one_user(current_user.id)
-    return user_data
+    return await user_service.read_one_user(current_user.id)
 
 
 @user_router.get(

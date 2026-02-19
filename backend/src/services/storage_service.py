@@ -1,36 +1,42 @@
 from minio import Minio
-from fastapi.responses import StreamingResponse
-from fastapi import UploadFile
+from minio.error import S3Error
+from fastapi import HTTPException
 import os
-import uuid
+from datetime import timedelta
 
 class StorageService:
     def __init__(self):
         self.client = Minio(
-            endpoint=os.getenv("MINIO_ENDPOINT", "minio:9000"),
-            access_key=os.getenv("MINIO_ACCESS_KEY"),
-            secret_key=os.getenv("MINIO_SECRET_KEY"),
-            secure=False,
+            endpoint=os.getenv("MINIO_ENDPOINT", "localhost:9000"),
+            access_key=os.getenv("MINIO_ACCESS_KEY", "minioadmin"),
+            secret_key=os.getenv("MINIO_SECRET_KEY", "minioadmin"),
+            secure=False,  # True, если https
         )
         self.bucket = os.getenv("MINIO_BUCKET", "product-images")
 
-    def upload_image(self, file: UploadFile, user_id: int) -> str:
-        file_extension = file.filename.split(".")[-1]
-        object_name = f"{user_id}.{file_extension}"
-        self.client.put_object(
-            bucket_name=self.bucket,
-            object_name=object_name,
-            data=file.file,
-            length=-1,
-            part_size=10*1024*1024,
-            content_type=file.content_type,
-        )
-        return object_name
+        # Проверяем, что бакет существует
+        if not self.client.bucket_exists(self.bucket):
+            self.client.make_bucket(self.bucket)
 
-    def get_presigned_url(self, object_name: str, expires=3600) -> str:
-        return self.client.get_presigned_url(
-            "GET",
-            bucket_name=self.bucket,
-            object_name=object_name,
-            expires=expires
-        )
+    async def upload_file(self, file_bytes: bytes, file_name: str, content_type: str):
+        try:
+            self.client.put_object(
+                bucket_name=self.bucket,
+                object_name=file_name,
+                data=file_bytes,
+                length=len(file_bytes),
+                content_type=content_type,
+            )
+        except S3Error as e:
+            raise HTTPException(status_code=500, detail=f"MinIO upload error: {e}")
+
+    def get_presigned_url(self, file_name: str, expires: int = 3600) -> str:
+        try:
+            return self.client.get_presigned_url(
+                "GET",
+                bucket_name=self.bucket,
+                object_name=file_name,
+                expires=timedelta(seconds=expires)
+            )
+        except S3Error:
+            return None

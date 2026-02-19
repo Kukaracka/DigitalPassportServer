@@ -2,12 +2,19 @@ from typing import Optional
 from fastapi import HTTPException
 from database.models import UserModel
 from schemas.user_schemas import UserCreateSchema, UserReadSchema, UserUpdateSchema
+from services.storage_service import StorageService
 from utils.repository import SQLAlchemyRepository
 
 
 class UserService:
-    def __init__(self, users_repo: SQLAlchemyRepository[UserModel]):
+    def __init__(
+        self,
+        users_repo: SQLAlchemyRepository[UserModel],
+        storage_service: StorageService,
+    ):
         self.users_repo: SQLAlchemyRepository = users_repo
+        self.storage_service: StorageService = storage_service
+
 
     async def add_user(self, user: UserCreateSchema):
         """Добавить пользователя"""
@@ -21,15 +28,17 @@ class UserService:
         users_schema = [UserReadSchema.model_validate(user) for user in user_data]
         return users_schema
 
-    async def read_one_user(self, user_id: int) -> UserReadSchema:
-        """Получить одного пользователя"""
-        user_data: UserModel | None = await self.users_repo.read_one(user_id)
-        if user_data is None:
-            raise HTTPException(status_code=404, detail="User npt found")
-        user_schema = UserReadSchema.model_validate(user_data)
-        if user_schema is None:
-            raise HTTPException(status_code=404, detail="User npt found")
-        return user_schema
+    async def read_one_user(self, user_id: int) -> dict:
+        user_data = await self.users_repo.read_one(user_id)
+        if not user_data:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        user_dict = user_data.model_dump()  # преобразуем модель в dict
+
+        # добавляем avatar_url через presigned ссылку
+        user_dict["avatar_url"] = self.storage_service.get_presigned_url(str(user_data.id))
+
+        return user_dict
 
     async def update_user(
         self, id: int, user_update: UserUpdateSchema

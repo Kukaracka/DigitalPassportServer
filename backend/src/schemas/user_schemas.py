@@ -35,8 +35,7 @@ class UserCreateSchema(BaseModel):
 
 class UserReadSchema(UserSchema):
     id: int
-    avatar_filename: Optional[str] = None   # имя файла
-    avatar_url: Optional[str] = None        # ссылка на скачивание
+    avatar_url: Optional[str]
     username: str
     email: EmailStr
     first_name: str
