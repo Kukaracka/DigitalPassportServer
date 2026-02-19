@@ -15,9 +15,9 @@ class StorageService:
         )
         self.bucket = os.getenv("MINIO_BUCKET", "product-images")
 
-    def upload_image(self, file: UploadFile) -> str:
+    def upload_image(self, file: UploadFile, user_id: int) -> str:
         file_extension = file.filename.split(".")[-1]
-        object_name = f"{uuid.uuid4()}.{file_extension}"
+        object_name = f"{user_id}.{file_extension}"
 
         self.client.put_object(
             bucket_name=self.bucket,
