@@ -29,16 +29,11 @@ class UserService:
         # Преобразуем SQLAlchemy объект в словарь
         user_dict = {c.name: getattr(user_obj, c.name) for c in user_obj.__table__.columns}
 
-        # Создаём Pydantic модель
-        user_schema = UserReadSchema.model_validate(user_dict)
+        # Добавляем ссылку на аватар, если он есть
+        if user_dict.get("avatar"):
+            user_dict["avatar_upload_url"] = self.storage_service.get_upload_url(user_dict["avatar"])
 
-        # Добавляем URL аватара
-        if user_schema.avatar:
-            user_schema_dict = user_schema.model_dump()
-            user_schema_dict["avatar_upload_url"] = self.storage_service.get_upload_url(user_schema.avatar)
-            return user_schema_dict
-
-        return user_schema.model_dump()
+        return UserReadSchema.model_validate(user_dict)
 
     async def update_user(
         self, id: int, user_update: UserUpdateSchema

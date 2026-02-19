@@ -43,17 +43,11 @@ class UserReadSchema(BaseModel):
     father_name: str
     phone_number: str
     avatar: Optional[str] = None
-    storage_service: Optional["StorageService"] = None
+    avatar_upload_url: Optional[str] = None
 
     model_config = {
-        "arbitrary_types_allowed": True
+        "extra": "allow"
     }
-
-    @computed_field
-    def avatar_upload_url(self) -> Optional[str]:
-        if self.avatar and self.storage_service:
-            return self.storage_service.get_upload_url(self.avatar)
-        return None
 
 class UserUpdateSchema(BaseModel):
     username: str
