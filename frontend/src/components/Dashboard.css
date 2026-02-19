@@ -6,12 +6,13 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .dashboard-header {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  padding: 12px 16px;
+  padding: 12px 20px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   display: flex;
   justify-content: space-between;
@@ -22,6 +23,7 @@
   position: sticky;
   top: 0;
   z-index: 100;
+  gap: 15px;
 }
 
 .dashboard-header h1 {
@@ -34,15 +36,17 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 50%;
+  flex-shrink: 0;
 }
 
 .user-info {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  flex: 1;
+  min-width: 0;
 }
 
 .user-info span {
@@ -52,11 +56,34 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 150px;
+  max-width: 200px;
+}
+
+.header-avatar,
+.header-avatar-placeholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.header-avatar {
+  object-fit: cover;
+  border: 2px solid #4CAF50;
+}
+
+.header-avatar-placeholder {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  border: 2px solid #4CAF50;
 }
 
 .logout-button {
-  padding: 8px 16px;
+  padding: 6px 14px;
   background: linear-gradient(135deg, #ff6b6b, #ee5a52);
   color: white;
   border: none;
@@ -67,7 +94,7 @@
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
   white-space: nowrap;
-  min-width: 70px;
+  flex-shrink: 0;
 }
 
 .logout-button:hover {
@@ -76,47 +103,45 @@
 }
 
 .dashboard-content {
-  padding: 16px;
+  padding: 20px;
   width: 100%;
-  margin: 0;
+  margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
   box-sizing: border-box;
-  align-content: start;
+  max-width: 1400px;
 }
 
 .dashboard-welcome {
   grid-column: 1 / -1;
   text-align: center;
-  margin-bottom: 8px;
-  width: 100%;
-  padding: 16px;
   background: rgba(255, 255, 255, 0.9);
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 20px;
 }
 
 .dashboard-welcome h2 {
   color: #2d3748;
-  margin-bottom: 8px;
   font-size: 1.4rem;
   font-weight: 700;
-  line-height: 1.2;
+  margin: 0 0 8px 0;
+  word-break: break-word;
 }
 
 .dashboard-welcome p {
   color: #4a5568;
   font-size: 0.95rem;
-  line-height: 1.4;
   margin: 0 auto;
   max-width: 600px;
+  word-break: break-word;
 }
 
 .dashboard-card {
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(10px);
-  padding: 16px;
+  padding: 20px;
   border-radius: 12px;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
@@ -151,34 +176,37 @@
 
 .dashboard-card h3 {
   color: #2d3748;
-  margin-bottom: 8px;
+  margin: 0 0 8px 0;
   font-size: 1.1rem;
   font-weight: 600;
+  word-break: break-word;
 }
 
 .dashboard-card p {
   color: #718096;
   font-size: 0.9rem;
   line-height: 1.4;
-  margin: 0;
+  margin: 0 0 8px 0;
+  word-break: break-word;
 }
 
 .card-hint {
   font-size: 0.8rem;
   color: #667eea;
-  margin-top: 8px;
   font-weight: 500;
   opacity: 0.8;
+  margin-top: auto;
 }
 
+/* Планшеты */
 @media (max-width: 768px) {
   .dashboard-header {
-    padding: 10px 12px;
+    padding: 10px 16px;
+    gap: 10px;
   }
   
   .dashboard-header h1 {
     font-size: 1.1rem;
-    max-width: 40%;
   }
   
   .user-info {
@@ -186,24 +214,29 @@
   }
   
   .user-info span {
+    max-width: 150px;
     font-size: 0.85rem;
-    max-width: 100px;
+  }
+  
+  .header-avatar,
+  .header-avatar-placeholder {
+    width: 32px;
+    height: 32px;
   }
   
   .logout-button {
-    padding: 6px 12px;
+    padding: 5px 12px;
     font-size: 0.8rem;
-    min-width: 60px;
   }
   
   .dashboard-content {
-    padding: 12px;
-    gap: 12px;
+    padding: 16px;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   }
   
   .dashboard-welcome {
-    padding: 12px;
-    margin-bottom: 4px;
+    padding: 16px;
   }
   
   .dashboard-welcome h2 {
@@ -215,8 +248,8 @@
   }
   
   .dashboard-card {
-    padding: 14px;
-    min-height: 100px;
+    padding: 16px;
+    min-height: 110px;
   }
   
   .dashboard-card h3 {
@@ -234,68 +267,88 @@
   }
 }
 
+/* Мобильные */
 @media (max-width: 480px) {
   .dashboard-header {
     flex-direction: column;
-    gap: 8px;
     align-items: stretch;
-    padding: 8px 10px;
+    padding: 8px 12px;
+    gap: 8px;
   }
   
   .dashboard-header h1 {
-    max-width: 100%;
     text-align: center;
     font-size: 1rem;
   }
   
   .user-info {
-    justify-content: space-between;
+    justify-content: center;
+    width: 100%;
   }
   
   .user-info span {
-    max-width: 70%;
+    max-width: 120px;
+    font-size: 0.8rem;
+  }
+  
+  .header-avatar,
+  .header-avatar-placeholder {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .logout-button {
+    padding: 4px 10px;
+    font-size: 0.75rem;
   }
   
   .dashboard-content {
-    padding: 10px;
-    gap: 10px;
+    padding: 12px;
+    gap: 12px;
+    grid-template-columns: 1fr;
   }
   
   .dashboard-welcome {
-    padding: 10px;
+    padding: 12px;
   }
   
   .dashboard-welcome h2 {
     font-size: 1.1rem;
   }
-}
-
-@media (max-width: 320px) {
-  .dashboard-header {
-    padding: 6px 8px;
+  
+  .dashboard-welcome p {
+    font-size: 0.85rem;
   }
   
-  .dashboard-header h1 {
-    font-size: 0.9rem;
+  .dashboard-card {
+    padding: 14px;
+    min-height: 100px;
   }
   
-  .user-info span {
+  .dashboard-card h3 {
+    font-size: 0.95rem;
+    margin-bottom: 6px;
+  }
+  
+  .dashboard-card p {
     font-size: 0.8rem;
   }
   
-  .logout-button {
-    padding: 4px 8px;
-    font-size: 0.75rem;
+  .clickable-card::after {
+    top: 12px;
+    right: 12px;
+    font-size: 0.95rem;
   }
-  
-  .dashboard-content {
-    padding: 8px;
-    gap: 8px;
+}
+
+/* Очень маленькие экраны */
+@media (max-width: 360px) {
+  .user-info span {
+    max-width: 90px;
   }
   
   .dashboard-card {
     padding: 12px;
-    min-height: 90px;
   }
   
   .dashboard-card h3 {
@@ -303,20 +356,19 @@
   }
   
   .dashboard-card p {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
   }
 }
 
+/* Большие экраны */
 @media (min-width: 1200px) {
   .dashboard-content {
     padding: 24px;
-    gap: 20px;
-    max-width: 1400px;
-    margin: 0 auto;
+    gap: 24px;
   }
   
   .dashboard-card {
-    padding: 20px;
+    padding: 24px;
     min-height: 140px;
   }
   

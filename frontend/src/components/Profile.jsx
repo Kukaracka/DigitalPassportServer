@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import EditProfile from './EditProfile';
+import AvatarUploader from './AvatarUploader';
 import './Profile.css';
 
-const Profile = ({ user, onBack, onUpdateUser }) => {
+const Profile = ({ user, onBack, onUpdateUser, onAvatarUpload }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [updateError, setUpdateError] = useState('');
+  const [avatarError, setAvatarError] = useState('');
 
   const userData = user || {};
+  const avatarUrl = user?.avatar_url || null; 
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -27,6 +31,19 @@ const Profile = ({ user, onBack, onUpdateUser }) => {
       setUpdateError(error.message);
     }
   };
+
+  const handleAvatarUpload = async (file) => {
+    try {
+      setAvatarError('');
+      setIsUploadingAvatar(true);
+      await onAvatarUpload(file);
+    } catch (error) {
+      setAvatarError(error.message);
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
   if (isEditing) {
     return (
       <EditProfile 
@@ -49,8 +66,30 @@ const Profile = ({ user, onBack, onUpdateUser }) => {
       
       <main className="profile-content">
         <div className="profile-card">
-          <div className="profile-avatar">
-            {userData.first_name?.[0]}{userData.last_name?.[0]}
+          <div className="profile-avatar-section">
+            {avatarUrl ? (
+              <img 
+                src={avatarUrl} 
+                alt={`${userData.first_name} ${userData.last_name}`}
+                className="profile-avatar-image"
+                onError={(e) => {
+                  console.error('❌ Failed to load avatar:', avatarUrl);
+                  e.target.style.display = 'none';
+                }}
+                onLoad={() => console.log('✅ Avatar loaded successfully')}
+              />
+            ) : (
+              <div className="profile-avatar">
+                {userData.first_name?.[0]}{userData.last_name?.[0]}
+              </div>
+            )}
+            
+            <AvatarUploader
+              onUpload={handleAvatarUpload}
+              hasAvatar={!!avatarUrl}
+              isUploading={isUploadingAvatar}
+              error={avatarError}
+            />
           </div>
           
           <div className="profile-info">

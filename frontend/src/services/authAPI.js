@@ -49,6 +49,7 @@ class AuthAPI {
   async getCurrentUser() {
     try {
       const response = await api.get('/users/me');
+      console.log('📥 User data from server:', response.data); 
       return response.data;
     } catch (error) {
       console.log('⚠️ /users/me failed, trying /users/');
@@ -78,6 +79,28 @@ class AuthAPI {
     }
   }
 
+  async uploadAvatar(file) {
+    try {
+      console.log('📤 Uploading avatar:', file.name);
+      
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await api.post('/users/me/avatar', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
+      console.log('✅ Upload response:', response.data);
+      
+      return response.data;
+    } catch (error) {
+      console.error('❌ Upload error:', error);
+      throw this.handleError(error);
+    }
+  }
+
   handleError(error) {
     if (error.response?.data?.detail) {
       return new Error(error.response.data.detail);
@@ -87,6 +110,9 @@ class AuthAPI {
     }
     if (error.response?.status === 409) {
       return new Error('Пользователь уже существует');
+    }
+    if (error.response?.status === 400) {
+      return new Error(error.response.data.detail || 'Ошибка загрузки файла');
     }
     if (error.request) {
       return new Error('Нет подключения к серверу');

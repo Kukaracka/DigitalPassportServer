@@ -18,9 +18,11 @@ export const useAuth = () => {
       setIsAuthenticated(true);
       
       const userData = await AuthAPI.getCurrentUser();
+      console.log('👤 User data after checkAuth:', userData);
       setUser(userData);
       
     } catch (error) {
+      console.log('❌ Auth check failed:', error);
       setIsAuthenticated(false);
       setUser(null);
     } finally {
@@ -87,6 +89,36 @@ export const useAuth = () => {
     }
   };
 
+  const uploadAvatar = async (file) => {
+    try {
+      setError(null);
+      setLoading(true);
+      
+      console.log('🚀 Starting avatar upload...');
+      const result = await AuthAPI.uploadAvatar(file);
+      console.log('✅ Upload result:', result);
+      
+      if (result.avatar_url) {
+        setUser(prevUser => ({
+          ...prevUser,
+          avatar_url: result.avatar_url,
+          avatar_filename: result.avatar_filename
+        }));
+      } else {
+        const updatedUserData = await AuthAPI.getCurrentUser();
+        setUser(updatedUserData);
+      }
+      
+      return result;
+    } catch (error) {
+      const errorMessage = error.message;
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = async () => {
     setIsAuthenticated(false);
     setUser(null);
@@ -106,6 +138,7 @@ export const useAuth = () => {
     login,
     register,
     updateUser,
+    uploadAvatar,
     logout,
     checkAuth,
     clearError

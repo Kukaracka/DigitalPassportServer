@@ -1,12 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Profile from './Profile';
 import Products from './Products';
 import './Dashboard.css';
 
-const Dashboard = ({ user, onLogout, onUpdateUser }) => {
+const Dashboard = ({ user, onLogout, onUpdateUser, onAvatarUpload }) => {
   const [currentView, setCurrentView] = useState('dashboard');
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const currentUser = user;
+  const avatarUrl = user?.avatar_url; // URL уже готов!
+
+  const getDisplayName = () => {
+    if (!currentUser?.first_name) return 'Пользователь';
+    
+    const name = currentUser.first_name;
+    if (windowWidth <= 768 && name.length > 12) {
+      return name.substring(0, 10) + '...';
+    }
+    return name;
+  };
 
   if (currentView === 'profile') {
     return (
@@ -14,6 +34,7 @@ const Dashboard = ({ user, onLogout, onUpdateUser }) => {
         user={user} 
         onBack={() => setCurrentView('dashboard')}
         onUpdateUser={onUpdateUser}
+        onAvatarUpload={onAvatarUpload}
       />
     );
   }
@@ -32,7 +53,21 @@ const Dashboard = ({ user, onLogout, onUpdateUser }) => {
       <header className="dashboard-header">
         <h1>DigitalPassport</h1>
         <div className="user-info">
-          <span>Добро пожаловать, {currentUser?.first_name || 'Пользователь'}!</span>
+          {avatarUrl ? (
+            <img 
+              src={avatarUrl} 
+              alt="avatar" 
+              className="header-avatar"
+              onError={(e) => console.error('❌ Failed to load avatar in header:', avatarUrl)}
+            />
+          ) : (
+            <div className="header-avatar-placeholder">
+              {currentUser?.first_name?.[0]}{currentUser?.last_name?.[0]}
+            </div>
+          )}
+          <span title={`Добро пожаловать, ${currentUser?.first_name || 'Пользователь'}!`}>
+            Добро пожаловать, {getDisplayName()}!
+          </span>
           <button onClick={onLogout} className="logout-button">
             Выйти
           </button>

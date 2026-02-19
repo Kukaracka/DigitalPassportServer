@@ -14,6 +14,7 @@ function App() {
     login, 
     register, 
     updateUser,
+    uploadAvatar,
     logout,
     clearError 
   } = useAuth();
@@ -49,6 +50,14 @@ function App() {
     }
   };
 
+  const handleAvatarUpload = async (file) => {
+    try {
+      await uploadAvatar(file);
+    } catch (error) {
+      throw error;
+    }
+  };
+
   const handleLogout = async () => {
     await logout();
     setCurrentView('login');
@@ -61,6 +70,8 @@ function App() {
   const handleSwitchToRegister = () => {
     setCurrentView('register');
   };
+
+  console.log('🔄 App render - user:', user); // Отслеживаем изменения пользователя
 
   if (loading) {
     return (
@@ -96,6 +107,7 @@ function App() {
           user={user} 
           onLogout={handleLogout}
           onUpdateUser={handleUpdateUser}
+          onAvatarUpload={handleAvatarUpload}
         />
       ) : (
         currentView === 'login' ? (
