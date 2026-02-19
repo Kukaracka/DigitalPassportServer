@@ -28,23 +28,17 @@ class UserService:
         users_schema = [UserReadSchema.model_validate(user) for user in user_data]
         return users_schema
 
-    async def read_one_user(self, user_id: int) -> UserReadSchema:
+    async def read_one_user(self, user_id: int) -> dict:
         user_data = await self.users_repo.read_one(user_id)
         if not user_data:
             raise HTTPException(status_code=404, detail="User not found")
 
-        # Преобразуем SQLAlchemy объект в словарь
-        user_dict = {
-            "id": user_data.id,
-            "username": user_data.username,
-            "email": user_data.email,
-            "first_name": getattr(user_data, "first_name", None),
-            "last_name": getattr(user_data, "last_name", None),
-            # Добавляем avatar_url по user_id
-            "avatar_url": self.storage_service.get_presigned_url(str(user_data.id))
-        }
+        user_dict = user_data.model_dump()  # преобразуем модель в dict
 
-        return UserReadSchema.model_validate(user_dict)
+        # добавляем avatar_url через presigned ссылку
+        user_dict["avatar_url"] = self.storage_service.get_presigned_url(str(user_data.id))
+
+        return user_dict
 
     async def update_user(
         self, id: int, user_update: UserUpdateSchema
