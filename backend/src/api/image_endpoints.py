@@ -5,7 +5,7 @@ from services.storage_service import StorageService
 
 image_router = APIRouter()
 
-@image_router.post("/users/avatar")
+@image_router.post("/users/me/avatar")
 async def upload_product_image(
     file: UploadFile = File(...),
     current_user: UserModel = Depends(get_current_authorised_user),
