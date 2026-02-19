@@ -52,14 +52,11 @@ def get_minio_client() -> Minio:
     )
 
 
-# Storage Service Dependency
-async def get_storage_service(
-    minio_client: Minio = Depends(get_minio_client),
-) -> StorageService:
+async def get_storage_service() -> StorageService:
     """
-    Dependency для получения StorageService с MinIO клиентом
+    Dependency для получения StorageService
     """
-    return StorageService(minio_client=minio_client)
+    return StorageService()  #
 
 
 # Auth Dependencies
