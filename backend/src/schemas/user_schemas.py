@@ -33,7 +33,6 @@ class UserCreateSchema(BaseModel):
             raise ValueError("The password must consist of at least 8 characters")
         return v
 
-
 class UserReadSchema(BaseModel):
     id: int
     username: str
@@ -43,16 +42,20 @@ class UserReadSchema(BaseModel):
     father_name: str
     phone_number: str
     avatar: Optional[str] = None
-
+    
     # Внутреннее поле для сервиса хранилища
-    _storage_service: Optional[StorageService] = None
+    _storage_service: Optional[object] = None
 
     @computed_field
     @property
     def avatar_url(self) -> Optional[str]:
         """URL для просмотра аватара"""
         if self.avatar and self._storage_service:
-            return self._storage_service.get_file_url(self.avatar)
+            # Вызываем метод с именованным аргументом
+            return self._storage_service.get_file_url(
+                object_name=self.avatar,
+                expires_seconds=3600
+            )
         return None
 
     @computed_field
@@ -60,16 +63,23 @@ class UserReadSchema(BaseModel):
     def avatar_upload_url(self) -> Optional[str]:
         """URL для загрузки аватара"""
         if self._storage_service:
-            return self._storage_service.get_upload_url(self.id)
+            # Вызываем метод с именованным аргументом
+            return self._storage_service.get_upload_url(
+                user_id=self.id,
+                expires_seconds=3600
+            )
         return None
-
-    def set_storage_service(self, storage_service: StorageService):
+    
+    def set_storage_service(self, storage_service):
         """Устанавливаем storage_service для вычисления полей"""
+        from services.storage_service import StorageService
+        if not isinstance(storage_service, StorageService):
+            raise TypeError(f"Expected StorageService, got {type(storage_service)}")
         self._storage_service = storage_service
 
     model_config = ConfigDict(
-        from_attributes=True,  # В Pydantic v2 используется from_attributes вместо orm_mode
-        arbitrary_types_allowed=True,  # Разрешаем не-pydantic типы
+        from_attributes=True,
+        arbitrary_types_allowed=True
     )
 
 
