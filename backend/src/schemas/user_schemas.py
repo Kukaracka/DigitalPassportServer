@@ -37,17 +37,36 @@ class UserCreateSchema(BaseModel):
 class UserReadSchema(BaseModel):
     id: int
     username: str
-    email: EmailStr
+    email: str
     first_name: str
     last_name: str
     father_name: str
     phone_number: str
     avatar: Optional[str] = None
-    avatar_upload_url: Optional[str] = None
+    
+    # Временно храним storage_service как внутреннее поле
+    _storage_service: Optional[StorageService] = None
 
-    model_config = {
-        "extra": "allow"
-    }
+    @computed_field
+    @property
+    def avatar_url(self) -> Optional[str]:
+        """URL для просмотра аватара"""
+        if self.avatar and self._storage_service:
+            return self._storage_service.get_file_url(self.avatar)
+        return None
+
+    @computed_field
+    @property
+    def avatar_upload_url(self) -> Optional[str]:
+        """URL для загрузки аватара"""
+        if self._storage_service:
+            # Используем ID пользователя для генерации имени файла
+            return self._storage_service.get_upload_url(self.id)
+        return None
+    
+    def set_storage_service(self, storage_service: StorageService):
+        """Устанавливаем storage_service для вычисления полей"""
+        self._storage_service = storage_service
 
 class UserUpdateSchema(BaseModel):
     username: str

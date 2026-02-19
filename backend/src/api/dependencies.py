@@ -1,8 +1,13 @@
 import os
+from typing import Optional
+
+from minio import Minio
 from authx import AuthX, AuthXConfig
 from authx.exceptions import JWTDecodeError
 from fastapi import Depends, HTTPException, Request, status
+from functools import lru_cache
 
+from app.core.config import get_settings
 from database.models import UserModel
 from repositories.product_repository import ProductRepository
 from repositories.user_repository import UserRepository
@@ -11,23 +16,51 @@ from dotenv import load_dotenv
 from services.auth_service import AuthService
 from services.product_service import ProductService
 from services.user_service import UserService
+from services.storage_service import StorageService  # Импортируем StorageService
 
 load_dotenv()
 
 
+# JWT Configuration
 secret = os.getenv("SECRET_KEY")
 if secret is None:
-    raise Exception
+    raise Exception("SECRET_KEY environment variable is not set")
+
 config = AuthXConfig()
 config.JWT_SECRET_KEY = secret
 config.JWT_ACCESS_COOKIE_NAME = "my_access_token"
 config.JWT_TOKEN_LOCATION = ["cookies"]
 config.JWT_COOKIE_CSRF_PROTECT = False
 
-
 security = AuthX(config=config)
 
 
+# MinIO Client Dependency
+@lru_cache
+def get_minio_client() -> Minio:
+    """
+    Dependency для получения MinIO клиента
+    """
+    settings = get_settings()
+    return Minio(
+        endpoint=settings.MINIO_ENDPOINT,
+        access_key=settings.MINIO_ACCESS_KEY,
+        secret_key=settings.MINIO_SECRET_KEY,
+        secure=settings.MINIO_SECURE,
+    )
+
+
+# Storage Service Dependency
+async def get_storage_service(
+    minio_client: Minio = Depends(get_minio_client),
+) -> StorageService:
+    """
+    Dependency для получения StorageService с MinIO клиентом
+    """
+    return StorageService(minio_client=minio_client)
+
+
+# Auth Dependencies
 async def verify_token(request: Request):
     try:
         result = await security.access_token_required(request)
@@ -38,7 +71,7 @@ async def verify_token(request: Request):
         else:
             raise HTTPException(status_code=401, detail="Invalid token")
     except Exception as e:
-        print(f"Other auth error: {e}")  # Отладочная информация
+        print(f"Other auth error: {e}")
         raise HTTPException(status_code=401, detail="Authentication failed")
 
 
@@ -79,6 +112,7 @@ async def get_current_authorised_user(
     return user
 
 
+# Repository Dependencies
 async def get_user_repository() -> UserRepository:
     return UserRepository()
 
@@ -87,7 +121,7 @@ async def get_product_repository() -> ProductRepository:
     return ProductRepository()
 
 
-
+# Service Dependencies
 async def get_user_service(
     user_repo: UserRepository = Depends(get_user_repository),
 ) -> UserService:
@@ -96,9 +130,11 @@ async def get_user_service(
 
 async def get_auth_service(
     user_repo: UserRepository = Depends(get_user_repository),
-):
+) -> AuthService:
     return AuthService(user_repo)
 
+
 async def get_product_service(
-    product_repo: ProductRepository = Depends(get_product_repository)):
+    product_repo: ProductRepository = Depends(get_product_repository),
+) -> ProductService:
     return ProductService(product_repo)

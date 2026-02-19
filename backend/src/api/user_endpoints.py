@@ -29,9 +29,18 @@ async def create_user(
 async def get_user(
     current_user: UserModel = Depends(get_current_authorised_user),
     user_service: UserService = Depends(get_user_service),
+    storage_service: StorageService = Depends(get_storage_service),  # Добавляем зависимость
 ):
+    # Получаем данные пользователя
     user_data = await user_service.read_one_user(current_user.id)
-    return user_data
+    
+    # Преобразуем в схему
+    user_schema = UserReadSchema.model_validate(user_data)
+    
+    # Устанавливаем storage_service для вычисления URL
+    user_schema.set_storage_service(storage_service)
+    
+    return user_schema
 
 
 @user_router.get(
