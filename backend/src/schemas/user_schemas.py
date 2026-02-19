@@ -42,8 +42,12 @@ class UserReadSchema(BaseModel):
     last_name: str
     father_name: str
     phone_number: str
-    avatar: Optional[str] = None  # хранит путь к файлу в MinIO
-    storage_service: Optional[StorageService] = None  # сюда передаем экземпляр сервиса
+    avatar: Optional[str] = None
+    storage_service: Optional["StorageService"] = None
+
+    model_config = {
+        "arbitrary_types_allowed": True
+    }
 
     @computed_field
     def avatar_upload_url(self) -> Optional[str]:
