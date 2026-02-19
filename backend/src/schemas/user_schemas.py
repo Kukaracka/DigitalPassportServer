@@ -1,4 +1,6 @@
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from typing import Optional
+from pydantic import BaseModel, EmailStr, Field, computed_field, field_validator
+from services.storage_service import StorageService
 
 
 class UserSchema(BaseModel):
@@ -33,6 +35,9 @@ class UserCreateSchema(BaseModel):
 
 
 class UserReadSchema(UserSchema):
+    def __init__(self):
+        self.storage_service = StorageService
+
     id: int
     username: str
     email: EmailStr
@@ -40,7 +45,15 @@ class UserReadSchema(UserSchema):
     last_name: str
     father_name: str
     phone_number: str
+    avatar_url: Optional[str] = None
 
+    # computed field — будет включено в сериализацию
+    @computed_field
+    @property
+    def avatar_upload_url(self) -> Optional[str]:
+        if self.storage_service:
+            return self.storage_service.get_upload_url(f"avatars/{self.id}.png")
+        return None
 
 class UserUpdateSchema(BaseModel):
     username: str
