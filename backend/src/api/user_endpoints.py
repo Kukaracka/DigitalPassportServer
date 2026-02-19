@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 
-from api.dependencies import get_current_authorised_user, get_user_service
+from api.dependencies import get_current_authorised_user, get_user_service, get_storage_service
 from database.models import UserModel
 from schemas.user_schemas import UserCreateSchema, UserReadSchema, UserUpdateSchema
+from services.storage_service import StorageService
 from services.user_service import UserService
 
 user_router = APIRouter(prefix="/users", tags=["Users"])
