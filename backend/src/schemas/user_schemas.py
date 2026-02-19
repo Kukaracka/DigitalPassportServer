@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
@@ -34,6 +35,8 @@ class UserCreateSchema(BaseModel):
 
 class UserReadSchema(UserSchema):
     id: int
+    avatar_filename: Optional[str] = None   # имя файла
+    avatar_url: Optional[str] = None        # ссылка на скачивание
     username: str
     email: EmailStr
     first_name: str

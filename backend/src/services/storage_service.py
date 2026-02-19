@@ -1,11 +1,8 @@
 from minio import Minio
-from minio.error import S3Error
+from fastapi.responses import StreamingResponse
 from fastapi import UploadFile
-import uuid
 import os
-
-from starlette.responses import StreamingResponse
-
+import uuid
 
 class StorageService:
     def __init__(self):
@@ -20,26 +17,20 @@ class StorageService:
     def upload_image(self, file: UploadFile, user_id: int) -> str:
         file_extension = file.filename.split(".")[-1]
         object_name = f"{user_id}.{file_extension}"
-
         self.client.put_object(
             bucket_name=self.bucket,
             object_name=object_name,
             data=file.file,
             length=-1,
-            part_size=10 * 1024 * 1024,
+            part_size=10*1024*1024,
             content_type=file.content_type,
         )
-
         return object_name
-    def get_image(self, object_name: str):
-        """
-        Возвращает StreamingResponse для файла из MinIO
-        """
-        try:
-            obj = self.client.get_object(self.bucket, object_name)
-            return StreamingResponse(
-                obj,
-                media_type="application/octet-stream"
-            )
-        except S3Error as e:
-            raise RuntimeError(f"Error fetching object {object_name}: {e}")
+
+    def get_presigned_url(self, object_name: str, expires=3600) -> str:
+        return self.client.get_presigned_url(
+            "GET",
+            bucket_name=self.bucket,
+            object_name=object_name,
+            expires=expires
+        )
