@@ -34,10 +34,7 @@ class UserCreateSchema(BaseModel):
         return v
 
 
-class UserReadSchema(UserSchema):
-    def __init__(self):
-        self.storage_service = StorageService
-
+class UserReadSchema(BaseModel):
     id: int
     username: str
     email: EmailStr
@@ -45,14 +42,13 @@ class UserReadSchema(UserSchema):
     last_name: str
     father_name: str
     phone_number: str
-    avatar_url: Optional[str] = None
+    avatar: Optional[str] = None  # хранит путь к файлу в MinIO
+    storage_service: Optional[StorageService] = None  # сюда передаем экземпляр сервиса
 
-    # computed field — будет включено в сериализацию
     @computed_field
-    @property
     def avatar_upload_url(self) -> Optional[str]:
-        if self.storage_service:
-            return self.storage_service.get_upload_url(f"avatars/{self.id}.png")
+        if self.avatar and self.storage_service:
+            return self.storage_service.get_upload_url(self.avatar)
         return None
 
 class UserUpdateSchema(BaseModel):
