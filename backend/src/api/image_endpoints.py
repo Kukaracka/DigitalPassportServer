@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, Depends
+from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from api.dependencies import get_current_authorised_user
 from database.models import UserModel
 from services.storage_service import StorageService
@@ -17,6 +17,19 @@ async def upload_product_image(
         "filename": object_name,
         "message": "Image uploaded successfully"
     }
+
+@image_router.get("/users/me/avatar")
+def get_my_avatar(
+    current_user: UserModel = Depends(get_current_authorised_user),
+):
+    storage = StorageService()
+    if not current_user.avatar_filename:
+        raise HTTPException(status_code=404, detail="Avatar not found")
+    
+    try:
+        return storage.get_image(current_user.avatar_filename)
+    except Exception:
+        raise HTTPException(status_code=404, detail="Avatar not found")
 
 
 

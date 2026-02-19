@@ -4,6 +4,8 @@ from fastapi import UploadFile
 import uuid
 import os
 
+from starlette.responses import StreamingResponse
+
 
 class StorageService:
     def __init__(self):
@@ -29,4 +31,15 @@ class StorageService:
         )
 
         return object_name
-
+    def get_image(self, object_name: str):
+        """
+        Возвращает StreamingResponse для файла из MinIO
+        """
+        try:
+            obj = self.client.get_object(self.bucket, object_name)
+            return StreamingResponse(
+                obj,
+                media_type="application/octet-stream"
+            )
+        except S3Error as e:
+            raise RuntimeError(f"Error fetching object {object_name}: {e}")
