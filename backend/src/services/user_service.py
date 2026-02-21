@@ -38,11 +38,17 @@ class UserService:
             c.name: getattr(user_obj, c.name) for c in user_obj.__table__.columns
         }
 
-        # Добавляем ссылку на аватар, если он есть
+        # Добавляем URL аватара, если он есть
         if user_dict.get("avatar"):
-            user_dict["avatar_upload_url"] = self.storage_service.get_upload_url(
-                user_dict["avatar"]
-            )
+            # Для просмотра аватара используем get_file_url
+            avatar_url = self.storage_service.get_file_url(user_dict["avatar"])
+            user_dict["avatar_url"] = avatar_url
+            
+            # Для загрузки нового аватара (если нужно)
+            user_dict["avatar_upload_url"] = self.storage_service.get_upload_url(user_dict["avatar"])
+        else:
+            # Можно добавить URL для дефолтного аватара
+            user_dict["avatar_url"] = "/static/default-avatar.png"
 
         return UserReadSchema.model_validate(user_dict)
 
