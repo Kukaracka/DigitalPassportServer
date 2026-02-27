@@ -42,7 +42,7 @@ async def upload_user_avatar(
     if not file_extension:
         file_extension = '.jpg'
     
-    object_name = f"avatars/{current_user.id}/avatar_{int(time.time())}{file_extension}"
+    object_name = f"avatars/{current_user.id}/avatar{file_extension}"
     
     # Загружаем файл (синхронный вызов в потоке)
     import asyncio

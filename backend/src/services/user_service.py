@@ -78,8 +78,7 @@ class UserService:
         # Генерируем URL для загрузки нового аватара
         try:
             logger.info("Генерируем upload URL...")
-            import time
-            new_avatar_name = f"avatars/{user_id}/avatar_{int(time.time())}.jpg"
+            new_avatar_name = f"avatars/{user_id}/avatar.jpg"
             logger.info(f"Новое имя файла: {new_avatar_name}")
             
             avatar_upload_url = self.storage_service.get_upload_url(
