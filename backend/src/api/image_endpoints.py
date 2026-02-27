@@ -58,7 +58,7 @@ async def upload_user_avatar(
         )
     
     # Обновляем запись пользователя в БД
-    await user_service.users_repo.update(
+    await user_service.users_repo.update_one(
         current_user.id,
         {"avatar": object_name}
     )
