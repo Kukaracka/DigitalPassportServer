@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 
-from api.dependencies import get_current_authorised_user, get_user_service
+from api.dependencies import get_current_authorised_user, get_user_service, get_storage_service
 from database.models import UserModel
 from schemas.user_schemas import UserCreateSchema, UserReadSchema, UserUpdateSchema
+from services.storage_service import StorageService
 from services.user_service import UserService
 
 user_router = APIRouter(prefix="/users", tags=["Users"])
@@ -23,14 +24,29 @@ async def create_user(
 
 @user_router.get(
     "/me",
+    response_description="One user retrieved successfully",
     response_model=UserReadSchema,
-    response_description="Get current user with avatar URL"
+)
+@user_router.get(
+    "/me",
+    response_description="One user retrieved successfully",
+    response_model=UserReadSchema,
 )
 async def get_user(
     current_user: UserModel = Depends(get_current_authorised_user),
     user_service: UserService = Depends(get_user_service),
+    storage_service: StorageService = Depends(get_storage_service),
 ):
-    return await user_service.read_one_user(current_user.id)
+    # Получаем данные пользователя
+    user_data = await user_service.read_one_user(current_user.id)
+    
+    if not user_data:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Устанавливаем storage_service для вычисления URL
+    user_data.set_storage_service(storage_service)
+    
+    return user_data
 
 
 @user_router.get(

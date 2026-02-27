@@ -2,19 +2,19 @@ from typing import Optional
 from fastapi import HTTPException
 from database.models import UserModel
 from schemas.user_schemas import UserCreateSchema, UserReadSchema, UserUpdateSchema
-from services.storage_service import StorageService
+from utils.repository import SQLAlchemyRepository
+
+
+from typing import Optional
+from fastapi import HTTPException
+from database.models import UserModel
+from schemas.user_schemas import UserCreateSchema, UserReadSchema, UserUpdateSchema
 from utils.repository import SQLAlchemyRepository
 
 
 class UserService:
-    def __init__(
-        self,
-        users_repo: SQLAlchemyRepository[UserModel],
-        storage_service: StorageService,
-    ):
+    def __init__(self, users_repo: SQLAlchemyRepository[UserModel]):
         self.users_repo: SQLAlchemyRepository = users_repo
-        self.storage_service: StorageService = storage_service
-
 
     async def add_user(self, user: UserCreateSchema):
         """Добавить пользователя"""
@@ -28,17 +28,29 @@ class UserService:
         users_schema = [UserReadSchema.model_validate(user) for user in user_data]
         return users_schema
 
-    async def read_one_user(self, user_id: int) -> dict:
-        user_data = await self.users_repo.read_one(user_id)
-        if not user_data:
-            raise HTTPException(status_code=404, detail="User not found")
+    async def read_one_user(self, user_id: int):
+        user_obj = await self.users_repo.read_one(user_id)
+        if not user_obj:
+            return None
 
-        user_dict = user_data.model_dump()  # преобразуем модель в dict
+        # Преобразуем SQLAlchemy объект в словарь
+        user_dict = {
+            c.name: getattr(user_obj, c.name) for c in user_obj.__table__.columns
+        }
 
-        # добавляем avatar_url через presigned ссылку
-        user_dict["avatar_url"] = self.storage_service.get_presigned_url(str(user_data.id))
+        # Добавляем URL аватара, если он есть
+        if user_dict.get("avatar"):
+            # Для просмотра аватара используем get_file_url
+            avatar_url = self.storage_service.get_file_url(user_dict["avatar"])
+            user_dict["avatar_url"] = avatar_url
+            
+            # Для загрузки нового аватара (если нужно)
+            user_dict["avatar_upload_url"] = self.storage_service.get_upload_url(user_dict["avatar"])
+        else:
+            # Можно добавить URL для дефолтного аватара
+            user_dict["avatar_url"] = "/static/default-avatar.png"
 
-        return user_dict
+        return UserReadSchema.model_validate(user_dict)
 
     async def update_user(
         self, id: int, user_update: UserUpdateSchema
