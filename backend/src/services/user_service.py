@@ -57,6 +57,7 @@ class UserService:
                         expires=3600  # 1 час
                     )
                 except Exception as e:
+                    print(f"{e}")
             
             # Генерируем URL для загрузки нового аватара
             # Всегда генерируем, даже если текущего аватара нет
