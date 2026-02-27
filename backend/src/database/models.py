@@ -36,7 +36,7 @@ class UserModel(Base):
     last_name: Mapped[str]
     father_name: Mapped[str] = mapped_column(default="")
     phone_number: Mapped[str] = mapped_column(default="")
-    avatar: Mapped[str] = mapped_column(default="")
+    avatar: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     
     # Связь с продуктами
     products: Mapped[list["ProductModel"]] = relationship(
