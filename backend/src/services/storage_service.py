@@ -81,47 +81,27 @@ class StorageService:
             logger.warning(f"Could not set public read policy: {e}")
 
 
-    async def upload_file(
+    def upload_file(
         self, 
-        file_data: Union[bytes, BinaryIO], 
+        file_data: bytes, 
         file_name: str, 
-        content_type: str,
-        metadata: Optional[dict] = None
+        content_type: str
     ) -> bool:
         """
-        Загружает файл в MinIO
-        
-        Args:
-            file_data: Байты или файлоподобный объект
-            file_name: Имя файла в хранилище (путь)
-            content_type: MIME тип файла
-            metadata: Метаданные файла
-        
-        Returns:
-            bool: Успешность загрузки
+        Синхронная загрузка файла в MinIO
         """
         try:
-            # Определяем размер данных
-            if isinstance(file_data, bytes):
-                length = len(file_data)
-                data = file_data
-                logger.info(f"Uploading bytes data, size: {length} bytes")
-            else:
-                # Если это файлоподобный объект, нужно определить размер
-                file_data.seek(0, 2)  # Идем в конец
-                length = file_data.tell()
-                file_data.seek(0)  # Возвращаемся в начало
-                data = file_data
-                logger.info(f"Uploading file-like object, size: {length} bytes")
+            from io import BytesIO
             
-            # Загружаем файл
+            # Создаем поток из байтов
+            data_stream = BytesIO(file_data)
+            
             self.client.put_object(
                 bucket_name=self.bucket,
                 object_name=file_name,
-                data=data,
-                length=length,
-                content_type=content_type,
-                metadata=metadata or {}
+                data=data_stream,
+                length=len(file_data),
+                content_type=content_type
             )
             
             logger.info(f"File uploaded successfully: {file_name}")
@@ -129,16 +109,10 @@ class StorageService:
             
         except S3Error as e:
             logger.error(f"MinIO upload error: {e}")
-            raise HTTPException(
-                status_code=500, 
-                detail=f"Storage upload error: {e.message}"
-            )
+            return False
         except Exception as e:
             logger.error(f"Unexpected upload error: {e}")
-            raise HTTPException(
-                status_code=500, 
-                detail=f"Unexpected upload error: {str(e)}"
-            )
+            return False
 
     def get_file_url(
         self, 

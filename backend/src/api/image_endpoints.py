@@ -28,7 +28,7 @@ async def upload_user_avatar(
     # Читаем файл
     contents = await file.read()
     
-    # Проверяем размер файла (например, не больше 5MB)
+    # Проверяем размер файла (не больше 5MB)
     if len(contents) > 5 * 1024 * 1024:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -36,17 +36,19 @@ async def upload_user_avatar(
         )
     
     # Генерируем имя файла
+    import time
+    import os
     file_extension = os.path.splitext(file.filename)[1]
     if not file_extension:
-        file_extension = '.jpg'  # расширение по умолчанию
+        file_extension = '.jpg'
     
     object_name = f"avatars/{current_user.id}/avatar_{int(time.time())}{file_extension}"
     
-    # Загружаем файл (передаем байты)
-    success = await storage.upload_file(
-        file_data=contents,  # Это bytes, а не file
-        file_name=object_name,
-        content_type=file.content_type
+    # Загружаем файл (синхронный вызов в потоке)
+    import asyncio
+    success = await asyncio.get_event_loop().run_in_executor(
+        None,  # используем пул потоков по умолчанию
+        lambda: storage.upload_file(contents, object_name, file.content_type)
     )
     
     if not success:
