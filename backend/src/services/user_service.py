@@ -14,9 +14,9 @@ from utils.repository import SQLAlchemyRepository
 
 
 class UserService:
-    def __init__(self, users_repo: SQLAlchemyRepository[UserModel]):
+    def __init__(self, users_repo: SQLAlchemyRepository[UserModel], storage_service: StorageService):
         self.users_repo: SQLAlchemyRepository = users_repo
-        self.storage_service: StorageService = StorageService()
+        self.storage_service: StorageService = storage_service
 
     async def add_user(self, user: UserCreateSchema):
         """Добавить пользователя"""
@@ -40,45 +40,45 @@ class UserService:
             c.name: getattr(user_obj, c.name) for c in user_obj.__table__.columns
         }
         
-        
-
-        # Добавляем URL аватара, если он есть
+        # Генерируем URL'ы для аватара
         if user_dict.get("avatar"):
-            # Для просмотра аватара используем get_presigned_url (GET метод)
+            # Если аватар есть - даем ссылку на существующий файл
             avatar_url = self.storage_service.get_presigned_url(
                 file_name=user_dict["avatar"],
                 expires=3600  # 1 час
             )
-            user_dict["avatar_url"] = avatar_url
-            
-            # Для загрузки нового аватара используем get_upload_presigned_url (PUT метод)
-            # Формируем имя файла для загрузки
-            upload_file_name = f"avatars/{user_id}/avatar.jpg"
-            user_dict["avatar_upload_url"] = self.storage_service.get_upload_presigned_url(
-                file_name=upload_file_name,
-                expires=3600  # 1 час
-            )
         else:
-            # Можно добавить URL для дефолтного аватара
-            user_dict["avatar_url"] = "/static/default-avatar.png"
-            user_dict["avatar_upload_url"] = self.storage_service.get_upload_presigned_url(
-                file_name=f"avatars/{user_id}/avatar.jpg",
-                expires=3600
-            )
+            # Если аватара нет - даем ссылку на дефолтный
+            avatar_url = "/static/default-avatar.png"
+        
+        # URL для загрузки нового аватара (всегда доступен)
+        # Формируем путь с уникальным именем, чтобы избежать кэширования
+        import time
+        upload_file_name = f"avatars/{user_id}/avatar_{int(time.time())}.jpg"
+        avatar_upload_url = self.storage_service.get_upload_presigned_url(
+            file_name=upload_file_name,
+            expires=3600  # 1 час
+        )
+        
+        # Добавляем URL'ы в словарь
+        user_dict.update({
+            "avatar_url": avatar_url,
+            "avatar_upload_url": avatar_upload_url
+        })
 
         return UserReadSchema.model_validate(user_dict)
 
-    async def update_user(
-        self, id: int, user_update: UserUpdateSchema
-    ) -> Optional[UserReadSchema]:
-        """Обновить данные о пользователе"""
-        existing_user = await self.users_repo.read_one(id)
-        if not existing_user:
+        async def update_user(
+            self, id: int, user_update: UserUpdateSchema
+        ) -> Optional[UserReadSchema]:
+            """Обновить данные о пользователе"""
+            existing_user = await self.users_repo.read_one(id)
+            if not existing_user:
+                return None
+
+            update_data = user_update.model_dump(exclude_unset=True)
+
+            updated_data = await self.users_repo.update_one(id, update_data)
+            if updated_data:
+                return await self.read_one_user(id)
             return None
-
-        update_data = user_update.model_dump(exclude_unset=True)
-
-        updated_data = await self.users_repo.update_one(id, update_data)
-        if updated_data:
-            return await self.read_one_user(id)
-        return None

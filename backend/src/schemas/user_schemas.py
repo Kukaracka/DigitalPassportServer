@@ -43,43 +43,23 @@ class UserReadSchema(BaseModel):
     phone_number: str
     avatar: Optional[str] = None
     
-    # Внутреннее поле для сервиса хранилища
-    _storage_service: StorageService = StorageService()
-
+    # Убираем _storage_service из модели полностью!
+    
     @computed_field
     @property
     def avatar_url(self) -> Optional[str]:
         """URL для просмотра аватара"""
-        if self.avatar and self._storage_service:
-            # Вызываем метод с именованным аргументом
-            return self._storage_service.get_file_url(
-                object_name=self.avatar,
-                expires_seconds=3600
-            )
-        return None
-
+        # Теперь URL формируется на уровне сервиса, а не в модели
+        return None  # Будет заполнено в сервисе
+    
     @computed_field
     @property
     def avatar_upload_url(self) -> Optional[str]:
         """URL для загрузки аватара"""
-        if self._storage_service:
-            # Вызываем метод с именованным аргументом
-            return self._storage_service.get_upload_url(
-                user_id=self.id,
-                expires_seconds=3600
-            )
-        return None
-    
-    def set_storage_service(self, storage_service):
-        """Устанавливаем storage_service для вычисления полей"""
-        from services.storage_service import StorageService
-        if not isinstance(storage_service, StorageService):
-            raise TypeError(f"Expected StorageService, got {type(storage_service)}")
-        self._storage_service = storage_service
+        return None  # Будет заполнено в сервисе
 
     model_config = ConfigDict(
-        from_attributes=True,
-        arbitrary_types_allowed=True
+        from_attributes=True
     )
 
 
@@ -96,4 +76,4 @@ class TokenResponseSchema(BaseModel):
     access_token: str
 
     class Config:
-        schema_extra = {"example": {"access_token": "string"}}
+        json_schema_extra = {"example": {"access_token": "string"}}
