@@ -14,6 +14,7 @@ from repositories.product_repository import ProductRepository
 from repositories.user_repository import UserRepository
 from dotenv import load_dotenv
 
+from services import storage_service
 from services.auth_service import AuthService
 from services.product_service import ProductService
 from services.user_service import UserService
@@ -123,8 +124,9 @@ async def get_product_repository() -> ProductRepository:
 # Service Dependencies
 async def get_user_service(
     user_repo: UserRepository = Depends(get_user_repository),
+    storage_servicee: StorageService = Depends(get_storage_service)
 ) -> UserService:
-    return UserService(user_repo)
+    return UserService(user_repo, storage_servicee)
 
 
 async def get_auth_service(
