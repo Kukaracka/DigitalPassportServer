@@ -98,6 +98,7 @@ class UserService:
         
         logger.info(f"Финальный словарь: {user_dict}")
         
+        print(f"\n\n\n{user_dict}")
         # Валидируем и возвращаем
         return UserReadSchema.model_validate(user_dict)
 
