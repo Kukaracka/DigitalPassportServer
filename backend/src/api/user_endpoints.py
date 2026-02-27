@@ -35,7 +35,7 @@ async def create_user(
 async def get_user(
     current_user: UserModel = Depends(get_current_authorised_user),
     user_service: UserService = Depends(get_user_service),
-    storage_service: StorageService = Depends(get_storage_service),
+    # storage_service: StorageService = Depends(get_storage_service),
 ):
     # Получаем данные пользователя
     user_data = await user_service.read_one_user(current_user.id)
@@ -44,7 +44,7 @@ async def get_user(
         raise HTTPException(status_code=404, detail="User not found")
     
     # Устанавливаем storage_service для вычисления URL
-    user_data.set_storage_service(storage_service)
+    # user_data.set_storage_service(storage_service)
     
     return user_data
 
