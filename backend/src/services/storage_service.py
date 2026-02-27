@@ -154,8 +154,43 @@ class StorageService:
             return None
 
     def get_download_url(self, file_name: str, expires: int = 3600) -> Optional[str]:
-        """Получает URL для скачивания файла"""
-        return self.get_file_url(file_name, expires, "GET")
+        """
+        Получение URL для скачивания файла
+        """
+        logger.info(f"=== get_download_url called for: {file_name} ===")
+        logger.info(f"Bucket: {self.bucket}")
+        
+        try:
+            # Проверяем существование файла через stat_object
+            try:
+                stat = self.client.stat_object(self.bucket, file_name)
+                logger.info(f"File exists! Size: {stat.size}, ETag: {stat.etag}")
+            except Exception as e:
+                logger.error(f"File does NOT exist in MinIO: {e}")
+                return None
+            
+            # Генерируем presigned URL
+            logger.info("Generating presigned URL...")
+            from datetime import timedelta
+            
+            url = self.client.presigned_get_object(
+                bucket_name=self.bucket,
+                object_name=file_name,
+                expires=timedelta(seconds=expires)
+            )
+            logger.info(f"Raw presigned URL: {url}")
+            
+            # Заменяем внутренний endpoint на публичный
+            url = self._replace_endpoint(url)
+            logger.info(f"Final URL after replace: {url}")
+            
+            return url
+            
+        except Exception as e:
+            logger.error(f"Error in get_download_url: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            return None
 
     def get_upload_url(self, file_name: str, expires: int = 3600) -> Optional[str]:
         """Получает URL для загрузки файла"""
@@ -221,26 +256,28 @@ class StorageService:
         if not url:
             return url
         
-        # Очищаем URL от лишних протоколов для поиска
-        clean_url = url.replace("http://", "").replace("https://", "")
-        clean_internal = self.internal_endpoint.replace("http://", "").replace("https://", "")
+        logger.info(f"Original URL: {url}")
         
-        # Если внутренний endpoint найден в URL, заменяем его
-        if clean_internal in clean_url:
-            # Находим позицию внутреннего endpoint в исходном URL
-            start_idx = url.find(clean_internal)
-            if start_idx != -1:
-                # Находим начало протокола
-                protocol_end = url.find("://")
-                if protocol_end != -1 and protocol_end < start_idx:
-                    # URL начинается с протокола, сохраняем его
-                    protocol = url[:protocol_end + 3]
-                    path = url[start_idx + len(clean_internal):]
-                    return f"{self.public_endpoint}{path}"
-                else:
-                    # URL без протокола или с другим форматом
-                    return url.replace(clean_internal, self.public_endpoint.replace("http://", "").replace("https://", ""), 1)
+        # Публичный endpoint из .env
+        public_url = os.getenv("MINIO_PUBLIC_URL", "http://localhost:9000")
+        logger.info(f"Public URL from env: {public_url}")
         
+        # Внутренний endpoint
+        internal = "minio:9000"
+        
+        # Заменяем внутренний endpoint на публичный
+        if internal in url:
+            new_url = url.replace(internal, public_url.replace("http://", "").replace("https://", ""))
+            logger.info(f"Replaced URL: {new_url}")
+            return new_url
+        
+        # Также проверяем наличие localhost:9000
+        if "localhost:9000" in url:
+            new_url = url.replace("localhost:9000", public_url.replace("http://", "").replace("https://", ""))
+            logger.info(f"Replaced localhost URL: {new_url}")
+            return new_url
+        
+        logger.info("No replacement needed")
         return url
 
     def generate_file_name(self, user_id: int, original_filename: str) -> str:
