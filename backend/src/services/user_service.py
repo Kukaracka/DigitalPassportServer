@@ -31,47 +31,53 @@ class UserService:
         return users_schema
 
     async def read_one_user(self, user_id: int):
-        user_obj = await self.users_repo.read_one(user_id)
-        if not user_obj:
-            return None
+            """Получение пользователя по ID с URL для аватара"""
+            user_obj = await self.users_repo.read_one(user_id)
+            if not user_obj:
+                return None
 
-        # Преобразуем SQLAlchemy объект в словарь
-        user_dict = {
-            c.name: getattr(user_obj, c.name) for c in user_obj.__table__.columns
-        }
-        
-        # Генерируем URL'ы для аватара
-        avatar_url = None
-        avatar_upload_url = None
-        
-        # URL для просмотра аватара (если он есть)
-        if user_dict.get("avatar"):
-            avatar_url = self.storage_service.get_download_url(
-                file_name=user_dict["avatar"],
-                expires=3600
-            )
-            # logger.info(f"Generated avatar URL for user {user_id}: {avatar_url}")
-        
-        # URL для загрузки нового аватара (всегда доступен)
-        # Генерируем имя для нового аватара
-        new_avatar_name = self.storage_service.generate_file_name(
-            user_id=user_id,
-            original_filename="avatar.jpg"  # Можно сделать параметром
-        )
-        
-        avatar_upload_url = self.storage_service.get_upload_url(
-            file_name=new_avatar_name,
-            expires=3600
-        )
-        
-        # Добавляем URL'ы в словарь
-        user_dict.update({
-            "avatar_url": avatar_url,
-            "avatar_upload_url": avatar_upload_url,
-            "avatar_upload_name": new_avatar_name  # Сохраняем имя для последующей загрузки
-        })
-
-        return UserReadSchema.model_validate(user_dict)
+            # Преобразуем SQLAlchemy объект в словарь
+            user_dict = {
+                'id': user_obj.id,
+                'username': user_obj.username,
+                'email': user_obj.email,
+                'first_name': user_obj.first_name,
+                'last_name': user_obj.last_name,
+                'father_name': user_obj.father_name,
+                'phone_number': user_obj.phone_number,
+                'avatar': user_obj.avatar
+            }
+            
+            # Генерируем URL для просмотра аватара
+            avatar_url = None
+            if user_obj.avatar:
+                try:
+                    avatar_url = self.storage_service.get_download_url(
+                        file_name=user_obj.avatar,
+                        expires=3600  # 1 час
+                    )
+                except Exception as e:
+            
+            # Генерируем URL для загрузки нового аватара
+            # Всегда генерируем, даже если текущего аватара нет
+            try:
+                # Генерируем имя для нового аватара
+                import time
+                new_avatar_name = f"avatars/{user_id}/avatar_{int(time.time())}.jpg"
+                
+                avatar_upload_url = self.storage_service.get_upload_url(
+                    file_name=new_avatar_name,
+                    expires=3600
+                )
+            except Exception as e:
+                avatar_upload_url = None
+            
+            # Добавляем URL в словарь
+            user_dict['avatar_url'] = avatar_url
+            user_dict['avatar_upload_url'] = avatar_upload_url
+            
+            # Валидируем и возвращаем
+            return UserReadSchema.model_validate(user_dict)
 
     async def update_user(
         self, id: int, user_update: UserUpdateSchema
