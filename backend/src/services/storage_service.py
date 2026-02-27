@@ -81,12 +81,7 @@ class StorageService:
             logger.warning(f"Could not set public read policy: {e}")
 
 
-    def upload_file(
-        self, 
-        file_data: bytes, 
-        file_name: str, 
-        content_type: str
-    ) -> bool:
+    def upload_file(self, file_data: bytes, file_name: str, content_type: str) -> bool:
         """
         Синхронная загрузка файла в MinIO
         """
@@ -96,6 +91,7 @@ class StorageService:
             # Создаем поток из байтов
             data_stream = BytesIO(file_data)
             
+            # Загружаем в MinIO
             self.client.put_object(
                 bucket_name=self.bucket,
                 object_name=file_name,
@@ -107,11 +103,8 @@ class StorageService:
             logger.info(f"File uploaded successfully: {file_name}")
             return True
             
-        except S3Error as e:
-            logger.error(f"MinIO upload error: {e}")
-            return False
         except Exception as e:
-            logger.error(f"Unexpected upload error: {e}")
+            logger.error(f"Upload error: {e}")
             return False
 
     def get_file_url(
