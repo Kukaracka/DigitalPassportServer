@@ -193,8 +193,33 @@ class StorageService:
             return None
 
     def get_upload_url(self, file_name: str, expires: int = 3600) -> Optional[str]:
-        """Получает URL для загрузки файла"""
-        return self.get_file_url(file_name, expires, "PUT")
+        """
+        Получение URL для загрузки файла
+        """
+        logger.info(f"=== get_upload_url ВЫЗВАН для: {file_name} ===")
+        
+        try:
+            logger.info("Генерируем upload presigned URL...")
+            from datetime import timedelta
+            
+            url = self.client.presigned_put_object(
+                bucket_name=self.bucket,
+                object_name=file_name,
+                expires=timedelta(seconds=expires)
+            )
+            logger.info(f"✅ Raw upload URL: {url}")
+            
+            # Заменяем внутренний endpoint на публичный
+            url = self._replace_endpoint(url)
+            logger.info(f"✅ Final upload URL: {url}")
+            
+            return url
+            
+        except Exception as e:
+            logger.error(f"❌ Ошибка в get_upload_url: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            return None
 
     def get_public_url(self, file_name: str) -> Optional[str]:
         """
