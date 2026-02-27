@@ -41,44 +41,49 @@ class UserService:
         }
         
         # Генерируем URL'ы для аватара
+        avatar_url = None
+        avatar_upload_url = None
+        
+        # URL для просмотра аватара (если он есть)
         if user_dict.get("avatar"):
-            # Если аватар есть - даем ссылку на существующий файл
-            avatar_url = self.storage_service.get_presigned_url(
+            avatar_url = self.storage_service.get_download_url(
                 file_name=user_dict["avatar"],
-                expires=3600  # 1 час
+                expires=3600
             )
-        else:
-            # Если аватара нет - даем ссылку на дефолтный
-            avatar_url = "/static/default-avatar.png"
+            # logger.info(f"Generated avatar URL for user {user_id}: {avatar_url}")
         
         # URL для загрузки нового аватара (всегда доступен)
-        # Формируем путь с уникальным именем, чтобы избежать кэширования
-        import time
-        upload_file_name = f"avatars/{user_id}/avatar_{int(time.time())}.jpg"
-        avatar_upload_url = self.storage_service.get_upload_presigned_url(
-            file_name=upload_file_name,
-            expires=3600  # 1 час
+        # Генерируем имя для нового аватара
+        new_avatar_name = self.storage_service.generate_file_name(
+            user_id=user_id,
+            original_filename="avatar.jpg"  # Можно сделать параметром
+        )
+        
+        avatar_upload_url = self.storage_service.get_upload_url(
+            file_name=new_avatar_name,
+            expires=3600
         )
         
         # Добавляем URL'ы в словарь
         user_dict.update({
             "avatar_url": avatar_url,
-            "avatar_upload_url": avatar_upload_url
+            "avatar_upload_url": avatar_upload_url,
+            "avatar_upload_name": new_avatar_name  # Сохраняем имя для последующей загрузки
         })
 
         return UserReadSchema.model_validate(user_dict)
 
-        async def update_user(
-            self, id: int, user_update: UserUpdateSchema
-        ) -> Optional[UserReadSchema]:
-            """Обновить данные о пользователе"""
-            existing_user = await self.users_repo.read_one(id)
-            if not existing_user:
-                return None
-
-            update_data = user_update.model_dump(exclude_unset=True)
-
-            updated_data = await self.users_repo.update_one(id, update_data)
-            if updated_data:
-                return await self.read_one_user(id)
+    async def update_user(
+        self, id: int, user_update: UserUpdateSchema
+    ) -> Optional[UserReadSchema]:
+        """Обновить данные о пользователе"""
+        existing_user = await self.users_repo.read_one(id)
+        if not existing_user:
             return None
+
+        update_data = user_update.model_dump(exclude_unset=True)
+
+        updated_data = await self.users_repo.update_one(id, update_data)
+        if updated_data:
+            return await self.read_one_user(id)
+        return None
