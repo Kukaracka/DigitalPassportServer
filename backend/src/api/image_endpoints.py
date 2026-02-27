@@ -28,27 +28,31 @@ async def upload_user_avatar(
     # Читаем файл
     contents = await file.read()
     
-    # Проверяем размер файла (не больше 5MB)
+    # Проверяем размер (макс 5MB)
     if len(contents) > 5 * 1024 * 1024:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="File too large. Max size: 5MB"
         )
     
-    # Генерируем имя файла
-    import time
-    import os
-    file_extension = os.path.splitext(file.filename)[1]
-    if not file_extension:
+    # ОПРЕДЕЛЯЕМ РАСШИРЕНИЕ ИЗ ЗАГРУЖАЕМОГО ФАЙЛА
+    file_extension = os.path.splitext(file.filename)[1].lower()
+    
+    # Разрешенные расширения
+    allowed_extensions = ['.jpg', '.jpeg', '.png', '.gif']
+    
+    if file_extension not in allowed_extensions:
+        # Если расширение не разрешено, используем .jpg по умолчанию
         file_extension = '.jpg'
     
+    # Всегда используем avatar + расширение загруженного файла
     object_name = f"avatars/{current_user.id}/avatar{file_extension}"
     
-    # Загружаем файл (синхронный вызов в потоке)
-    import asyncio
-    success = await asyncio.get_event_loop().run_in_executor(
-        None,  # используем пул потоков по умолчанию
-        lambda: storage.upload_file(contents, object_name, file.content_type)
+    # Загружаем файл
+    success = await storage.upload_file(
+        file_data=contents,
+        file_name=object_name,
+        content_type=file.content_type
     )
     
     if not success:
@@ -63,7 +67,7 @@ async def upload_user_avatar(
         {"avatar": object_name}
     )
     
-    # Получаем URL для загруженного аватара
+    # Получаем URL для просмотра
     avatar_url = storage.get_download_url(object_name, expires=3600)
     
     return {
