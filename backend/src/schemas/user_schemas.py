@@ -42,21 +42,22 @@ class UserReadSchema(BaseModel):
     father_name: str
     phone_number: str
     avatar: Optional[str] = None
-    
+    avatar_url: Optional[str] = None  # Убедитесь, что это поле есть!
+    avatar_upload_url: Optional[str] = None  # И это поле есть!   
     # Убираем _storage_service из модели полностью!
     
-    @computed_field
-    @property
-    def avatar_url(self) -> Optional[str]:
-        """URL для просмотра аватара"""
-        # Теперь URL формируется на уровне сервиса, а не в модели
-        return None  # Будет заполнено в сервисе
-    
-    @computed_field
-    @property
-    def avatar_upload_url(self) -> Optional[str]:
-        """URL для загрузки аватара"""
-        return None  # Будет заполнено в сервисе
+    # @computed_field
+    # @property
+    # def avatar_url(self) -> Optional[str]:
+    #     """URL для просмотра аватара"""
+    #     # Теперь URL формируется на уровне сервиса, а не в модели
+    #     return None  # Будет заполнено в сервисе
+    #
+    # @computed_field
+    # @property
+    # def avatar_upload_url(self) -> Optional[str]:
+    #     """URL для загрузки аватара"""
+    #     return None  # Будет заполнено в сервисе
 
     model_config = ConfigDict(
         from_attributes=True
