@@ -16,13 +16,13 @@ class StorageService:
         # Внутренний endpoint для подключения из контейнера
         self.internal_endpoint = os.getenv("MINIO_ENDPOINT", "minio:9000")
         # Внешний endpoint для доступа из браузера
-        self.public_endpoint = os.getenv("MINIO_PUBLIC_ENDPOINT", "http://localhost:9000")
+        self.public_endpoint = os.getenv("MINIO_PUBLIC_ENDPOINT", "https://194.150.220.138:9000")
         
         # Убираем протокол из internal_endpoint для MinIO клиента
         clean_endpoint = self.internal_endpoint.replace("http://", "").replace("https://", "")
         
         # Настройки безопасности
-        self.secure = os.getenv("MINIO_SECURE", "false").lower() == "true"
+        self.secure = os.getenv("MINIO_SECURE", "true").lower() == "true"
         self.access_key = os.getenv("MINIO_ACCESS_KEY", "minioadmin")
         self.secret_key = os.getenv("MINIO_SECRET_KEY", "minioadmin")
         self.bucket = os.getenv("MINIO_BUCKET", "product-images")
