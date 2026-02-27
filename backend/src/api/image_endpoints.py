@@ -1,3 +1,5 @@
+import os
+import time
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends, status
 from api.dependencies import get_current_authorised_user, get_storage_service, get_user_service
 from database.models import UserModel
@@ -11,46 +13,55 @@ async def upload_user_avatar(
     file: UploadFile = File(...),
     current_user: UserModel = Depends(get_current_authorised_user),
     user_service: UserService = Depends(get_user_service),
-    storage: StorageService = Depends(get_storage_service),  # Инъекция зависимости
+    storage: StorageService = Depends(get_storage_service),
 ):
     """
     Загрузка аватара пользователя
     """
-    # Проверяем файл
+    # Проверяем, что файл - изображение
     if not file.content_type or not file.content_type.startswith('image/'):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="File must be an image"
         )
     
-    # Читаем и проверяем размер
+    # Читаем файл
     contents = await file.read()
-    if len(contents) > 5 * 1024 * 1024:  # 5MB
+    
+    # Проверяем размер файла (например, не больше 5MB)
+    if len(contents) > 5 * 1024 * 1024:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="File too large. Max size: 5MB"
         )
     
     # Генерируем имя файла
-    import time
-    import os
     file_extension = os.path.splitext(file.filename)[1]
+    if not file_extension:
+        file_extension = '.jpg'  # расширение по умолчанию
+    
     object_name = f"avatars/{current_user.id}/avatar_{int(time.time())}{file_extension}"
     
-    # Загружаем файл
-    await storage.upload_file(
-        file_data=contents,
+    # Загружаем файл (передаем байты)
+    success = await storage.upload_file(
+        file_data=contents,  # Это bytes, а не file
         file_name=object_name,
         content_type=file.content_type
     )
     
-    # Обновляем БД
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to upload file"
+        )
+    
+    # Обновляем запись пользователя в БД
     await user_service.users_repo.update(
         current_user.id,
         {"avatar": object_name}
     )
     
-    # Получаем URL
+    # Получаем URL для загруженного аватара
     avatar_url = storage.get_download_url(object_name, expires=3600)
     
     return {

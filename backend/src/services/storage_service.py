@@ -80,6 +80,7 @@ class StorageService:
         except Exception as e:
             logger.warning(f"Could not set public read policy: {e}")
 
+
     async def upload_file(
         self, 
         file_data: Union[bytes, BinaryIO], 
@@ -104,12 +105,14 @@ class StorageService:
             if isinstance(file_data, bytes):
                 length = len(file_data)
                 data = file_data
+                logger.info(f"Uploading bytes data, size: {length} bytes")
             else:
                 # Если это файлоподобный объект, нужно определить размер
                 file_data.seek(0, 2)  # Идем в конец
                 length = file_data.tell()
                 file_data.seek(0)  # Возвращаемся в начало
                 data = file_data
+                logger.info(f"Uploading file-like object, size: {length} bytes")
             
             # Загружаем файл
             self.client.put_object(
