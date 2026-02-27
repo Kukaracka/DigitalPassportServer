@@ -44,7 +44,7 @@ class UserReadSchema(BaseModel):
     avatar: Optional[str] = None
     
     # Внутреннее поле для сервиса хранилища
-    _storage_service: Optional[object] = None
+    _storage_service: StorageService = StorageService()
 
     @computed_field
     @property

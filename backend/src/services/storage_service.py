@@ -1,63 +1,104 @@
-# src/services/storage_service.py
-import os
 from minio import Minio
+from minio.error import S3Error
+from fastapi import HTTPException
+import os
 from datetime import timedelta
-from typing import Optional
 
 class StorageService:
     def __init__(self):
-        # Внутренний endpoint для подключения к MinIO (всегда используется внутри Docker)
+        # Внутренний endpoint для подключения из контейнера
         self.internal_endpoint = os.getenv("MINIO_ENDPOINT", "minio:9000")
-        
-        # Публичный endpoint для доступа из браузера/клиента
-        # В продакшене это будет ваш домен, в разработке - localhost
+        # Внешний endpoint для доступа из браузера
         self.public_endpoint = os.getenv("MINIO_PUBLIC_ENDPOINT", "http://localhost:9000")
         
-        # Для MinIO клиента всегда используем internal_endpoint
         self.client = Minio(
-            endpoint=self.internal_endpoint,  # всегда minio:9000 внутри Docker
-            access_key=os.getenv("MINIO_ACCESS_KEY"),
-            secret_key=os.getenv("MINIO_SECRET_KEY"),
-            secure=False,  # в продакшене с HTTPS будет True
+            endpoint=self.internal_endpoint,
+            access_key=os.getenv("MINIO_ACCESS_KEY", "minioadmin"),
+            secret_key=os.getenv("MINIO_SECRET_KEY", "minioadmin"),
+            secure=False,  # True, если https
         )
         self.bucket = os.getenv("MINIO_BUCKET", "product-images")
-        
-        # Убедимся, что бакет существует
+
+        # Проверяем, что бакет существует
         try:
             if not self.client.bucket_exists(self.bucket):
                 self.client.make_bucket(self.bucket)
         except Exception as e:
             print(f"Error checking/creating bucket: {e}")
 
-    def get_file_url(self, object_name: str, expires_seconds: int = 3600) -> Optional[str]:
-        """
-        Получение pre-signed URL для просмотра файла с правильным публичным endpoint
-        """
-        if not object_name:
-            return None
-            
+    async def upload_file(self, file_bytes: bytes, file_name: str, content_type: str):
         try:
-            expires_delta = timedelta(seconds=expires_seconds)
-            
-            # Получаем pre-signed URL от MinIO (с internal_endpoint)
-            internal_url = self.client.presigned_get_object(
+            self.client.put_object(
                 bucket_name=self.bucket,
-                object_name=object_name,
-                expires=expires_delta
+                object_name=file_name,
+                data=file_bytes,
+                length=len(file_bytes),
+                content_type=content_type,
+            )
+        except S3Error as e:
+            raise HTTPException(status_code=500, detail=f"MinIO upload error: {e}")
+
+    def get_presigned_url(self, file_name: str, expires: int = 3600) -> str:
+        try:
+            # Получаем pre-signed URL от MinIO
+            url = self.client.get_presigned_url(
+                "GET",
+                bucket_name=self.bucket,
+                object_name=file_name,
+                expires=timedelta(seconds=expires)
             )
             
-            # Заменяем внутренний endpoint на публичный
-            if internal_url:
-                # Извлекаем хост из internal_url (minio:9000)
-                # и заменяем на публичный endpoint
-                public_url = internal_url.replace(
-                    self.internal_endpoint,
-                    self.public_endpoint.replace("http://", "").replace("https://", "")
-                )
-                return public_url
+            # Заменяем внутренний endpoint на внешний
+            url = self._replace_endpoint(url)
             
+            return url
+        except S3Error as e:
+            print(f"MinIO error creating presigned URL: {e}")
             return None
-            
         except Exception as e:
-            print(f"Error creating download URL: {e}")
+            print(f"Unexpected error: {e}")
             return None
+    
+    def get_upload_presigned_url(self, file_name: str, expires: int = 3600) -> str:
+        """
+        Получение pre-signed URL для загрузки файла
+        """
+        try:
+            url = self.client.get_presigned_url(
+                "PUT",
+                bucket_name=self.bucket,
+                object_name=file_name,
+                expires=timedelta(seconds=expires)
+            )
+            
+            # Заменяем внутренний endpoint на внешний
+            url = self._replace_endpoint(url)
+            
+            return url
+        except S3Error as e:
+            print(f"MinIO error creating upload presigned URL: {e}")
+            return None
+    
+    def _replace_endpoint(self, url: str) -> str:
+        """
+        Заменяет внутренний endpoint MinIO на публичный
+        """
+        if not url:
+            return url
+            
+        # Формируем внутренний хост для замены
+        internal_host = self.internal_endpoint.replace("http://", "").replace("https://", "")
+        
+        # Заменяем в URL
+        if internal_host in url:
+            # Если URL начинается с http://internal_host
+            url = url.replace(f"http://{internal_host}", self.public_endpoint)
+            url = url.replace(f"https://{internal_host}", self.public_endpoint)
+        
+        return url
+    
+    def get_public_url(self, file_name: str) -> str:
+        """
+        Получение прямого публичного URL (без подписи)
+        """
+        return f"{self.public_endpoint}/{self.bucket}/{file_name}"
