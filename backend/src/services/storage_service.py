@@ -96,7 +96,7 @@ class StorageService:
             url = self.public_client.presigned_put_object(
                 bucket_name=self.bucket,
                 object_name=file_name,
-                expires=timedelta(seconds=expires)
+                expires=timedelta(seconds=expires),
             )
 
             return url

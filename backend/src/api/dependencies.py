@@ -37,7 +37,7 @@ config.JWT_COOKIE_CSRF_PROTECT = False
 
 security = AuthX(config=config)
 
-
+storage_serv = StorageService()
 # MinIO Client Dependency
 @lru_cache
 def get_minio_client() -> Minio:
@@ -57,7 +57,7 @@ async def get_storage_service() -> StorageService:
     """
     Dependency для получения StorageService
     """
-    return StorageService()  #
+    return storage_serv  #
 
 
 # Auth Dependencies
