@@ -51,7 +51,7 @@ async def upload_user_avatar(
     
     # ВАЖНО: Используем фиксированное имя без временной метки!
     # Так проще обновлять и не плодить файлы
-    object_name = f"avatars/{current_user.id}/avatar{file_extension}"
+    object_name = f"{current_user.id}/avatar{file_extension}"
     
     # Определяем content_type для MinIO
     content_type_map = {
