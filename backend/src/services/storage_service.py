@@ -2,11 +2,13 @@ import os
 import logging
 from datetime import timedelta
 from typing import Optional
+import urllib3
 
 from minio import Minio
 from minio.error import S3Error
 
 logger = logging.getLogger(__name__)
+
 
 
 class StorageService:
@@ -22,6 +24,13 @@ class StorageService:
         self.secret_key = os.getenv("MINIO_SECRET_KEY", "strongpassword")
         self.bucket = os.getenv("MINIO_BUCKET", "avatars")
 
+
+
+        http_client = urllib3.PoolManager(
+            cert_reqs="CERT_NONE",
+            assert_hostname=False
+        )
+
         self.secure = os.getenv("MINIO_SECURE", "true").lower() == "true"
 
         logger.info(f"MinIO internal endpoint: {self.internal_endpoint}")
@@ -32,7 +41,8 @@ class StorageService:
             endpoint=self.internal_endpoint,
             access_key=self.access_key,
             secret_key=self.secret_key,
-            secure=self.secure,
+            secure=True,
+            http_client=http_client
         )
 
         # клиент только для генерации presigned URL
@@ -41,6 +51,7 @@ class StorageService:
             access_key=self.access_key,
             secret_key=self.secret_key,
             secure=self.secure,
+            http_client=http_client
         )
 
         self._ensure_bucket_exists()
