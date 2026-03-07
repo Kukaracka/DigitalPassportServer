@@ -6,11 +6,12 @@ import './Profile.css';
 const Profile = ({ user, onBack, onUpdateUser, onAvatarUpload }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [showUploadOverlay, setShowUploadOverlay] = useState(false);
   const [updateError, setUpdateError] = useState('');
   const [avatarError, setAvatarError] = useState('');
 
   const userData = user || {};
-  const avatarUrl = user?.avatar_url || null; 
+  const avatarUrl = user?.avatar_url || null;
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -41,7 +42,12 @@ const Profile = ({ user, onBack, onUpdateUser, onAvatarUpload }) => {
       setAvatarError(error.message);
     } finally {
       setIsUploadingAvatar(false);
+      setShowUploadOverlay(false);
     }
+  };
+
+  const handleFileSelect = () => {
+    document.getElementById('avatar-file-input').click();
   };
 
   if (isEditing) {
@@ -67,29 +73,58 @@ const Profile = ({ user, onBack, onUpdateUser, onAvatarUpload }) => {
       <main className="profile-content">
         <div className="profile-card">
           <div className="profile-avatar-section">
-            {avatarUrl ? (
-              <img 
-                src={avatarUrl} 
-                alt={`${userData.first_name} ${userData.last_name}`}
-                className="profile-avatar-image"
-                onError={(e) => {
-                  console.error('❌ Failed to load avatar:', avatarUrl);
-                  e.target.style.display = 'none';
-                }}
-                onLoad={() => console.log('✅ Avatar loaded successfully')}
-              />
-            ) : (
-              <div className="profile-avatar">
-                {userData.first_name?.[0]}{userData.last_name?.[0]}
+            <div 
+              className="avatar-container"
+              onMouseEnter={() => setShowUploadOverlay(true)}
+              onMouseLeave={() => setShowUploadOverlay(false)}
+            >
+              {avatarUrl ? (
+                <img 
+                  src={avatarUrl} 
+                  alt={`${userData.first_name} ${userData.last_name}`}
+                  className="profile-avatar-image"
+                />
+              ) : (
+                <div className="profile-avatar">
+                  {userData.first_name?.[0]}{userData.last_name?.[0]}
+                </div>
+              )}
+              
+              {/* Затемнение и кнопка при наведении */}
+              {showUploadOverlay && !isUploadingAvatar && (
+                <div className="avatar-overlay" onClick={handleFileSelect}>
+                  <span className="avatar-overlay-icon">📷</span>
+                  <span className="avatar-overlay-text">Изменить фото</span>
+                </div>
+              )}
+              
+              {/* Индикатор загрузки */}
+              {isUploadingAvatar && (
+                <div className="avatar-overlay uploading">
+                  <div className="avatar-spinner-small"></div>
+                  <span className="avatar-overlay-text">Загрузка...</span>
+                </div>
+              )}
+            </div>
+            
+            {/* Скрытый input для выбора файла */}
+            <input
+              id="avatar-file-input"
+              type="file"
+              accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  handleAvatarUpload(e.target.files[0]);
+                }
+              }}
+              style={{ display: 'none' }}
+            />
+            
+            {avatarError && (
+              <div className="avatar-error-message">
+                {avatarError}
               </div>
             )}
-            
-            <AvatarUploader
-              onUpload={handleAvatarUpload}
-              hasAvatar={!!avatarUrl}
-              isUploading={isUploadingAvatar}
-              error={avatarError}
-            />
           </div>
           
           <div className="profile-info">

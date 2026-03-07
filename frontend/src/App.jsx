@@ -31,6 +31,7 @@ function App() {
     try {
       await login(credentials);
     } catch (error) {
+      console.error('Login error:', error);
     }
   };
 
@@ -39,6 +40,7 @@ function App() {
       await register(userData);
       setCurrentView('login');
     } catch (error) {
+      console.error('Register error:', error);
     }
   };
 
@@ -71,7 +73,7 @@ function App() {
     setCurrentView('register');
   };
 
-  console.log('🔄 App render - user:', user); // Отслеживаем изменения пользователя
+  console.log('🔄 App render - user:', user);
 
   if (loading) {
     return (

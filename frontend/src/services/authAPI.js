@@ -49,8 +49,8 @@ class AuthAPI {
   async getCurrentUser() {
     try {
       const response = await api.get('/users/me');
-      console.log('📥 User data from server:', response.data); 
-      return response.data;
+      console.log('📥 User data from server:', response.data);
+      return response.data; // Бэкенд уже возвращает avatar_url!
     } catch (error) {
       console.log('⚠️ /users/me failed, trying /users/');
       const response = await api.get('/users/');
@@ -79,6 +79,7 @@ class AuthAPI {
     }
   }
 
+  // Загрузка аватарки через API (новый эндпоинт)
   async uploadAvatar(file) {
     try {
       console.log('📤 Uploading avatar:', file.name);
@@ -93,7 +94,6 @@ class AuthAPI {
       });
       
       console.log('✅ Upload response:', response.data);
-      
       return response.data;
     } catch (error) {
       console.error('❌ Upload error:', error);
@@ -113,6 +113,9 @@ class AuthAPI {
     }
     if (error.response?.status === 400) {
       return new Error(error.response.data.detail || 'Ошибка загрузки файла');
+    }
+    if (error.response?.status === 413) {
+      return new Error('Файл слишком большой (макс. 5MB)');
     }
     if (error.request) {
       return new Error('Нет подключения к серверу');

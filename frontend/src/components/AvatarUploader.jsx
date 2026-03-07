@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import './AvatarUploader.css';
 
-const AvatarUploader = ({ onUpload, onDelete, hasAvatar, isUploading, error }) => {
+const AvatarUploader = ({ onUpload, hasAvatar, isUploading, error }) => {
   const [dragActive, setDragActive] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [validationError, setValidationError] = useState('');
@@ -19,9 +19,8 @@ const AvatarUploader = ({ onUpload, onDelete, hasAvatar, isUploading, error }) =
 
   const validateFile = (file) => {
     // Проверка формата
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
-      return 'Допустимые форматы: JPEG, PNG, GIF, WEBP';
+    if (!file.type.startsWith('image/')) {
+      return 'Файл должен быть изображением';
     }
 
     // Проверка размера (5 МБ)
@@ -74,11 +73,6 @@ const AvatarUploader = ({ onUpload, onDelete, hasAvatar, isUploading, error }) =
     fileInputRef.current.click();
   };
 
-  const handleDelete = () => {
-    setPreviewUrl(null);
-    onDelete();
-  };
-
   const handleRemovePreview = () => {
     setPreviewUrl(null);
     if (fileInputRef.current) {
@@ -106,6 +100,7 @@ const AvatarUploader = ({ onUpload, onDelete, hasAvatar, isUploading, error }) =
             className="avatar-remove-preview"
             onClick={handleRemovePreview}
             disabled={isUploading}
+            type="button"
           >
             ✕
           </button>
@@ -138,16 +133,6 @@ const AvatarUploader = ({ onUpload, onDelete, hasAvatar, isUploading, error }) =
         <div className="avatar-error">
           {displayError}
         </div>
-      )}
-
-      {hasAvatar && !previewUrl && (
-        <button 
-          className="avatar-delete-btn"
-          onClick={handleDelete}
-          disabled={isUploading}
-        >
-          🗑️ Удалить фото
-        </button>
       )}
     </div>
   );

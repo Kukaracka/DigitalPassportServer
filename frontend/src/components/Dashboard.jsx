@@ -16,7 +16,7 @@ const Dashboard = ({ user, onLogout, onUpdateUser, onAvatarUpload }) => {
   }, []);
 
   const currentUser = user;
-  const avatarUrl = user?.avatar_url; // URL уже готов!
+  const avatarUrl = user?.avatar_url; // Бэкенд возвращает avatar_url
 
   const getDisplayName = () => {
     if (!currentUser?.first_name) return 'Пользователь';
@@ -58,13 +58,22 @@ const Dashboard = ({ user, onLogout, onUpdateUser, onAvatarUpload }) => {
               src={avatarUrl} 
               alt="avatar" 
               className="header-avatar"
-              onError={(e) => console.error('❌ Failed to load avatar in header:', avatarUrl)}
+              onError={(e) => {
+                console.error('❌ Failed to load avatar in header:', avatarUrl);
+                e.target.style.display = 'none';
+                // Показываем плейсхолдер при ошибке
+                e.target.parentNode.querySelector('.header-avatar-placeholder')?.classList.remove('hidden');
+              }}
             />
-          ) : (
+          ) : null}
+          
+          {/* Fallback для случаев, когда нет аватарки или ошибка загрузки */}
+          {!avatarUrl && (
             <div className="header-avatar-placeholder">
               {currentUser?.first_name?.[0]}{currentUser?.last_name?.[0]}
             </div>
           )}
+          
           <span title={`Добро пожаловать, ${currentUser?.first_name || 'Пользователь'}!`}>
             Добро пожаловать, {getDisplayName()}!
           </span>

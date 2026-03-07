@@ -89,6 +89,7 @@ export const useAuth = () => {
     }
   };
 
+  // Загрузка аватарки
   const uploadAvatar = async (file) => {
     try {
       setError(null);
@@ -98,16 +99,10 @@ export const useAuth = () => {
       const result = await AuthAPI.uploadAvatar(file);
       console.log('✅ Upload result:', result);
       
-      if (result.avatar_url) {
-        setUser(prevUser => ({
-          ...prevUser,
-          avatar_url: result.avatar_url,
-          avatar_filename: result.avatar_filename
-        }));
-      } else {
-        const updatedUserData = await AuthAPI.getCurrentUser();
-        setUser(updatedUserData);
-      }
+      // Обновляем данные пользователя, чтобы получить новый avatar_url
+      const updatedUserData = await AuthAPI.getCurrentUser();
+      console.log('👤 Updated user data:', updatedUserData);
+      setUser(updatedUserData);
       
       return result;
     } catch (error) {
