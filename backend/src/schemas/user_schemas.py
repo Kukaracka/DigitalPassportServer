@@ -1,5 +1,6 @@
 from typing import Optional
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, computed_field, field_validator
+from services.storage_service import StorageService
 
 
 class UserSchema(BaseModel):
@@ -32,16 +33,35 @@ class UserCreateSchema(BaseModel):
             raise ValueError("The password must consist of at least 8 characters")
         return v
 
-
-class UserReadSchema(UserSchema):
+class UserReadSchema(BaseModel):
     id: int
-    avatar_url: Optional[str]
     username: str
     email: EmailStr
     first_name: str
     last_name: str
     father_name: str
     phone_number: str
+    avatar: Optional[str] = None
+    avatar_url: Optional[str] = None  # Убедитесь, что это поле есть!
+    avatar_upload_url: Optional[str] = None  # И это поле есть!   
+    # Убираем _storage_service из модели полностью!
+    
+    # @computed_field
+    # @property
+    # def avatar_url(self) -> Optional[str]:
+    #     """URL для просмотра аватара"""
+    #     # Теперь URL формируется на уровне сервиса, а не в модели
+    #     return None  # Будет заполнено в сервисе
+    #
+    # @computed_field
+    # @property
+    # def avatar_upload_url(self) -> Optional[str]:
+    #     """URL для загрузки аватара"""
+    #     return None  # Будет заполнено в сервисе
+
+    model_config = ConfigDict(
+        from_attributes=True
+    )
 
 
 class UserUpdateSchema(BaseModel):
@@ -57,4 +77,4 @@ class TokenResponseSchema(BaseModel):
     access_token: str
 
     class Config:
-        schema_extra = {"example": {"access_token": "string"}}
+        json_schema_extra = {"example": {"access_token": "string"}}

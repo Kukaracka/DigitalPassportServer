@@ -19,8 +19,6 @@ Session: async_sessionmaker[AsyncSession] = async_sessionmaker(
 )
 
 
-
-
 class Base(DeclarativeBase):
     pass
 
@@ -36,20 +34,19 @@ class UserModel(Base):
     last_name: Mapped[str]
     father_name: Mapped[str] = mapped_column(default="")
     phone_number: Mapped[str] = mapped_column(default="")
-    
+    avatar: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+
     # Связь с продуктами
     products: Mapped[list["ProductModel"]] = relationship(
-        "ProductModel", 
-        back_populates="owner",
-        cascade="all, delete-orphan"
+        "ProductModel", back_populates="owner", cascade="all, delete-orphan"
     )
 
 
 class ProductModel(Base):
     __tablename__ = "products"
-    
+
     id: Mapped[int] = mapped_column(primary_key=True)
-    
+
     # Основные поля
     name: Mapped[str] = mapped_column(String(255))
     manufacturer: Mapped[str] = mapped_column(String(255))
@@ -61,21 +58,20 @@ class ProductModel(Base):
     warranty_until: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    
+
     # Владелец (пользователь, который добавил продукт)
     owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     owner: Mapped["UserModel"] = relationship("UserModel", back_populates="products")
-    
+
     # Метки времени
     created_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=lambda: datetime.now(pytz.timezone('Europe/Moscow'))
+        DateTime, default=lambda: datetime.now(pytz.timezone("Europe/Moscow"))
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=lambda: datetime.now(pytz.timezone('Europe/Moscow')),
-        onupdate=lambda: datetime.now(pytz.timezone('Europe/Moscow'))
+        default=lambda: datetime.now(pytz.timezone("Europe/Moscow")),
+        onupdate=lambda: datetime.now(pytz.timezone("Europe/Moscow")),
     )
-    
+
     def __repr__(self) -> str:
         return f"Product(id={self.id}, name={self.name}, serial={self.serial_number})"
