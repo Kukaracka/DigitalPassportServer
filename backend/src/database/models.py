@@ -36,7 +36,6 @@ class UserModel(Base):
     phone_number: Mapped[str] = mapped_column(default="")
     avatar: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 
-    # Связь с продуктами
     products: Mapped[list["ProductModel"]] = relationship(
         "ProductModel", back_populates="owner", cascade="all, delete-orphan"
     )
@@ -47,7 +46,6 @@ class ProductModel(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
 
-    # Основные поля
     name: Mapped[str] = mapped_column(String(255))
     manufacturer: Mapped[str] = mapped_column(String(255))
     category: Mapped[str] = mapped_column(String(100))
@@ -59,11 +57,9 @@ class ProductModel(Base):
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
-    # Владелец (пользователь, который добавил продукт)
     owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     owner: Mapped["UserModel"] = relationship("UserModel", back_populates="products")
 
-    # Метки времени
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(pytz.timezone("Europe/Moscow"))
     )
