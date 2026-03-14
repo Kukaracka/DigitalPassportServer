@@ -1,11 +1,13 @@
-from sqlalchemy import Date, Float, String
+from enum import Enum
+from sqlalchemy import Boolean, Date, Float, Integer, String
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from datetime import date, datetime
-from typing import Optional
+from typing import List, Optional
 from sqlalchemy.orm import relationship
 from sqlalchemy import DateTime, Text, ForeignKey
 import pytz
+from sqlalchemy import String, Integer, ForeignKey, Boolean, DateTime, Text, Enum as SQLEnum
 
 DATABASE_USL = (
     "postgresql+asyncpg://digitalpassport:digitalpassportpass@db:5432/digitalpassportdb"
@@ -41,6 +43,9 @@ class UserModel(Base):
     )
 
 
+
+
+
 class ProductModel(Base):
     __tablename__ = "products"
 
@@ -60,6 +65,14 @@ class ProductModel(Base):
     owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     owner: Mapped["UserModel"] = relationship("UserModel", back_populates="products")
 
+    # Добавляем связь с изображениями
+    images: Mapped[List["ProductImageModel"]] = relationship(
+        "ProductImageModel", 
+        back_populates="product",
+        cascade="all, delete-orphan",
+        order_by="ProductImageModel.sort_order"
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(pytz.timezone("Europe/Moscow"))
     )
@@ -71,3 +84,58 @@ class ProductModel(Base):
 
     def __repr__(self) -> str:
         return f"Product(id={self.id}, name={self.name}, serial={self.serial_number})"
+
+
+
+# /home/kukaracka/Projects/DigitalPassport/backend/src/database/models.py
+
+class ImageType(str, Enum):
+    RECEIPT = "receipt"        # Чек
+    WARRANTY = "warranty"       # Гарантия
+    PRODUCT = "product"         # Фото товара
+    DOCUMENT = "document"       # Документ
+    CERTIFICATE = "certificate" # Сертификат
+    OTHER = "other"             # Другое
+
+
+class ProductImageModel(Base):
+    __tablename__ = "product_images"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    
+    # Внешний ключ к продукту
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id", ondelete="CASCADE"))
+    
+    # Метаданные файла
+    file_name: Mapped[str] = mapped_column(String(255))      # Имя файла в MinIO
+    original_name: Mapped[str] = mapped_column(String(255))  # Оригинальное имя файла
+    file_size: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)  # Размер в байтах
+    content_type: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)  # MIME type
+    
+    # Тип изображения
+    image_type: Mapped[ImageType] = mapped_column(
+        SQLEnum(ImageType), 
+        default=ImageType.OTHER,
+        nullable=False
+    )
+    
+    # Метаданные для отображения
+    is_main: Mapped[bool] = mapped_column(Boolean, default=False)  # Главное изображение
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)     # Порядок сортировки
+    
+    # Временные метки
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, 
+        default=lambda: datetime.now(pytz.timezone("Europe/Moscow"))
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        default=lambda: datetime.now(pytz.timezone("Europe/Moscow")),
+        onupdate=lambda: datetime.now(pytz.timezone("Europe/Moscow")),
+    )
+
+    # Relationships
+    product: Mapped["ProductModel"] = relationship("ProductModel", back_populates="images")
+
+    def __repr__(self) -> str:
+        return f"ProductImage(id={self.id}, product_id={self.product_id}, type={self.image_type})"
