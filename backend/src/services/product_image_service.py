@@ -290,7 +290,7 @@ class ProductImageService:
             product_id=product_id,
             file_name=file_name,
             original_name=original_name,
-            image_type=ImageTypeModel(image_type),
+            image_type=image_type.name,  # .name дает 'PRODUCT' вместо 'product'
             file_size=len(file_data),
             content_type=file.content_type or f"image/{ext}"
         )

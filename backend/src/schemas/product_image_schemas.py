@@ -5,12 +5,12 @@ from enum import Enum
 
 
 class ImageType(str, Enum):
-    RECEIPT = "receipt"        # Чек
-    WARRANTY = "warranty"       # Гарантия
-    PRODUCT = "product"         # Фото товара
-    DOCUMENT = "document"       # Документ
-    CERTIFICATE = "certificate" # Сертификат
-    OTHER = "other"             # Другое
+    RECEIPT = "RECEIPT"        # Чек
+    WARRANTY = "WARRANTY"       # Гарантия
+    PRODUCT = "PRODUCT"         # Фото товара
+    DOCUMENT = "DOCUMENT"       # Документ
+    CERTIFICATE = "CERTIFICATE" # Сертификат
+    OTHER = "OTHER"             # Другое
 
 
 class ProductImageBaseSchema(BaseModel):
