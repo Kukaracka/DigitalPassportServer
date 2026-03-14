@@ -4,13 +4,20 @@ from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, delete
 from sqlalchemy.orm import selectinload
-from database.models import ProductImageModel, ImageType, Session
+from database.models import ProductImageModel, ImageType
 from datetime import datetime
+import pytz
 
 
 class ProductImageRepository:
-    def __init__(self):
-        self.session = Session()
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    def _get_naive_datetime(self) -> datetime:
+        """Возвращает datetime без часового пояса"""
+        now = datetime.now(pytz.timezone("Europe/Moscow"))
+        # Убираем часовой пояс
+        return now.replace(tzinfo=None)
 
     async def create(
         self, 
@@ -28,6 +35,9 @@ class ProductImageRepository:
         # Если это первое изображение, делаем его главным
         is_main = len(existing_images) == 0
         
+        # Получаем текущее время без часового пояса
+        now = self._get_naive_datetime()
+        
         image = ProductImageModel(
             product_id=product_id,
             file_name=file_name,
@@ -36,7 +46,9 @@ class ProductImageRepository:
             file_size=file_size,
             content_type=content_type,
             is_main=is_main,
-            sort_order=len(existing_images)
+            sort_order=len(existing_images),
+            created_at=now,  # Используем datetime без tzinfo
+            updated_at=now   # Используем datetime без tzinfo
         )
         
         self.session.add(image)
@@ -50,7 +62,7 @@ class ProductImageRepository:
         ).order_by(ProductImageModel.sort_order)
         
         result = await self.session.execute(query)
-        return result.scalars().all()
+        return list(result.scalars().all())  # Преобразуем Sequence в List
 
     async def get_by_product_and_type(
         self, 
@@ -66,7 +78,7 @@ class ProductImageRepository:
         ).order_by(ProductImageModel.sort_order)
         
         result = await self.session.execute(query)
-        return result.scalars().all()
+        return list(result.scalars().all())  # Преобразуем Sequence в List
 
     async def get_by_id(self, image_id: int) -> Optional[ProductImageModel]:
         """Получить изображение по ID"""
@@ -77,7 +89,7 @@ class ProductImageRepository:
         query = select(ProductImageModel).where(
             and_(
                 ProductImageModel.product_id == product_id,
-                ProductImageModel.is_main == True
+                ProductImageModel.is_main.is_(True)  # Исправляем сравнение с True
             )
         )
         result = await self.session.execute(query)
@@ -104,16 +116,17 @@ class ProductImageRepository:
     async def set_main_image(self, product_id: int, image_id: int) -> bool:
         """Установить изображение как главное"""
         # Сначала сбрасываем главное у всех изображений продукта
-        await self.session.execute(
-            ProductImageModel.__table__.update()
-            .where(ProductImageModel.product_id == product_id)
-            .values(is_main=False)
-        )
+        stmt = ProductImageModel.__table__.update().where(
+            ProductImageModel.product_id == product_id
+        ).values(is_main=False)
+        
+        await self.session.execute(stmt)
         
         # Устанавливаем новое главное
         image = await self.get_by_id(image_id)
         if image and image.product_id == product_id:
             image.is_main = True
+            image.updated_at = self._get_naive_datetime()  # Обновляем время
             await self.session.flush()
             return True
         return False
@@ -121,16 +134,14 @@ class ProductImageRepository:
     async def reorder_images(self, product_id: int, image_ids: List[int]):
         """Изменить порядок изображений"""
         for idx, image_id in enumerate(image_ids):
-            await self.session.execute(
-                ProductImageModel.__table__.update()
-                .where(
-                    and_(
-                        ProductImageModel.id == image_id,
-                        ProductImageModel.product_id == product_id
-                    )
+            stmt = ProductImageModel.__table__.update().where(
+                and_(
+                    ProductImageModel.id == image_id,
+                    ProductImageModel.product_id == product_id
                 )
-                .values(sort_order=idx)
-            )
+            ).values(sort_order=idx)
+            
+            await self.session.execute(stmt)
         await self.session.flush()
 
     async def count_by_product(self, product_id: int) -> int:
@@ -152,7 +163,7 @@ class ProductImageRepository:
         }
         
         for image in images:
-            img_type = image.image_type.value
+            img_type = image.image_type.value if hasattr(image.image_type, 'value') else str(image.image_type)
             if img_type not in summary["by_type"]:
                 summary["by_type"][img_type] = 0
             summary["by_type"][img_type] += 1

@@ -103,38 +103,33 @@ class ProductImageModel(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     
-    # Внешний ключ к продукту
     product_id: Mapped[int] = mapped_column(ForeignKey("products.id", ondelete="CASCADE"))
     
-    # Метаданные файла
-    file_name: Mapped[str] = mapped_column(String(255))      # Имя файла в MinIO
-    original_name: Mapped[str] = mapped_column(String(255))  # Оригинальное имя файла
-    file_size: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)  # Размер в байтах
-    content_type: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)  # MIME type
+    file_name: Mapped[str] = mapped_column(String(255))
+    original_name: Mapped[str] = mapped_column(String(255))
+    file_size: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    content_type: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     
-    # Тип изображения
     image_type: Mapped[ImageType] = mapped_column(
         SQLEnum(ImageType), 
         default=ImageType.OTHER,
         nullable=False
     )
     
-    # Метаданные для отображения
-    is_main: Mapped[bool] = mapped_column(Boolean, default=False)  # Главное изображение
-    sort_order: Mapped[int] = mapped_column(Integer, default=0)     # Порядок сортировки
+    is_main: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    sort_order: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     
-    # Временные метки
+    # ВАЖНО: Используем DateTime без часового пояса
     created_at: Mapped[datetime] = mapped_column(
-        DateTime, 
-        default=lambda: datetime.now(pytz.timezone("Europe/Moscow"))
+        DateTime,  # Убрали timezone=True
+        default=lambda: datetime.now(pytz.timezone("Europe/Moscow")).replace(tzinfo=None)
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=lambda: datetime.now(pytz.timezone("Europe/Moscow")),
-        onupdate=lambda: datetime.now(pytz.timezone("Europe/Moscow")),
+        DateTime,  # Убрали timezone=True
+        default=lambda: datetime.now(pytz.timezone("Europe/Moscow")).replace(tzinfo=None),
+        onupdate=lambda: datetime.now(pytz.timezone("Europe/Moscow")).replace(tzinfo=None)
     )
 
-    # Relationships
     product: Mapped["ProductModel"] = relationship("ProductModel", back_populates="images")
 
     def __repr__(self) -> str:
