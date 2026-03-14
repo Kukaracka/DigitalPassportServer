@@ -4,14 +4,14 @@ from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, delete
 from sqlalchemy.orm import selectinload
-from database.models import ProductImageModel, ImageType
+from database.models import ProductImageModel, ImageType, Session
 from datetime import datetime
 import pytz
 
 
 class ProductImageRepository:
-    def __init__(self, session: AsyncSession):
-        self.session = session
+    def __init__(self):
+        self.session = Session()
 
     def _get_naive_datetime(self) -> datetime:
         """Возвращает datetime без часового пояса"""
