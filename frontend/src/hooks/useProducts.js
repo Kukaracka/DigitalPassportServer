@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import ProductAPI from '../services/productAPI';
+import ProductImageAPI from '../services/productImageAPI';
 
 export const useProducts = () => {
   const [products, setProducts] = useState([]);
@@ -64,6 +65,81 @@ export const useProducts = () => {
     }
   };
 
+  const getProductWithImages = async (productId) => {
+    try {
+      return await ProductImageAPI.getProductWithImages(productId);
+    } catch (error) {
+      console.error('Error getting product with images:', error);
+      throw error;
+    }
+  };
+
+  const uploadProductImage = async (productId, file, imageType) => {
+    setLoading(true);
+    try {
+      const result = await ProductImageAPI.uploadImageDirect(productId, file, imageType);
+      return result;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getProductImages = async (productId) => {
+    try {
+      return await ProductImageAPI.getProductImages(productId);
+    } catch (error) {
+      console.error('Error getting images:', error);
+      throw error;
+    }
+  };
+
+  const getProductImagesByType = async (productId, imageType) => {
+    try {
+      return await ProductImageAPI.getImagesByType(productId, imageType);
+    } catch (error) {
+      console.error('Error getting images by type:', error);
+      throw error;
+    }
+  };
+
+  const deleteProductImage = async (imageId) => {
+    setLoading(true);
+    try {
+      await ProductImageAPI.deleteImage(imageId);
+      return true;
+    } catch (error) {
+      console.error('Error deleting image:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const setMainProductImage = async (productId, imageId) => {
+    setLoading(true);
+    try {
+      const result = await ProductImageAPI.setMainImage(productId, imageId);
+      return result;
+    } catch (error) {
+      console.error('Error setting main image:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getImageSummary = async (productId) => {
+    try {
+      return await ProductImageAPI.getImageSummary(productId);
+    } catch (error) {
+      console.error('Error getting image summary:', error);
+      throw error;
+    }
+  };
+
   const getProductById = (productId) => {
     return products.find(product => product.id === productId);
   };
@@ -89,9 +165,9 @@ export const useProducts = () => {
   };
 
   const getProductsByManufacturer = (manufacturer) => {
-    if (!manufacturer) return products;
+    if (!manufacturer || manufacturer === 'all') return products;
     return products.filter(product => 
-      product.manufacturer?.toLowerCase().includes(manufacturer.toLowerCase())
+      product.manufacturer?.toLowerCase() === manufacturer.toLowerCase()
     );
   };
 
@@ -161,6 +237,13 @@ export const useProducts = () => {
     addProduct,
     updateProduct,
     deleteProduct,
+    getProductWithImages,
+    uploadProductImage,
+    getProductImages,
+    getProductImagesByType,
+    deleteProductImage,
+    setMainProductImage,
+    getImageSummary,
     getProductById,
     getProductsByCategory,
     getProductsByPriceRange,
