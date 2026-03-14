@@ -239,6 +239,7 @@ class ProductImageService:
         return image_schema
 
 
+
     async def upload_file_direct(
         self, 
         product_id: int, 
@@ -252,7 +253,7 @@ class ProductImageService:
             raise HTTPException(status_code=404, detail="Product not found")
 
         # Читаем файл
-        file_bytes = await file.read()
+        file_data = await file.read()  # Читаем байты
         
         # Проверяем filename на None
         if file.filename is None:
@@ -262,12 +263,15 @@ class ProductImageService:
         ext = file.filename.split('.')[-1] if '.' in file.filename else 'jpg'
         file_name = f"products/{product_id}/{image_type.value}/{uuid.uuid4()}.{ext}"
         
-        # Загружаем в MinIO
-        await self.storage.upload_file(
-            file_bytes=file_bytes,
+        # ИСПРАВЛЕНИЕ: используем правильное имя параметра file_data
+        success = await self.storage.upload_file(
+            file_data=file_data,  # параметр называется file_data
             file_name=file_name,
             content_type=file.content_type or f"image/{ext}"
         )
+        
+        if not success:
+            raise HTTPException(status_code=500, detail="Failed to upload file to storage")
 
         # Создаем запись в БД
         original_name = file.filename if file.filename is not None else "unknown.jpg"
@@ -277,7 +281,7 @@ class ProductImageService:
             file_name=file_name,
             original_name=original_name,
             image_type=ImageTypeModel(image_type),
-            file_size=len(file_bytes),
+            file_size=len(file_data),
             content_type=file.content_type or f"image/{ext}"
         )
 
