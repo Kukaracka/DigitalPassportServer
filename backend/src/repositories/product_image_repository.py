@@ -56,13 +56,20 @@ class ProductImageRepository:
         return image
 
     async def get_by_product(self, product_id: int) -> List[ProductImageModel]:
-        """Получить все изображения продукта"""
+        """Получить все изображения продукта из БД"""
         query = select(ProductImageModel).where(
             ProductImageModel.product_id == product_id
         ).order_by(ProductImageModel.sort_order)
         
         result = await self.session.execute(query)
-        return list(result.scalars().all())  # Преобразуем Sequence в List
+        images = list(result.scalars().all())
+        
+        # Логируем для отладки
+        print(f"Repository: found {len(images)} images for product {product_id}")
+        for img in images:
+            print(f"  - Image ID: {img.id}, file: {img.file_name}")
+        
+        return images
 
     async def get_by_product_and_type(
         self, 
