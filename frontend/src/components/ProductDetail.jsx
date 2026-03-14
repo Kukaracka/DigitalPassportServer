@@ -1,9 +1,70 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ProductForm from './ProductForm';
+import ProductImageGallery from './ProductImageGallery';
+import { useProducts } from '../hooks/useProducts';
 import './ProductDetail.css';
 
 const ProductDetail = ({ product, onEdit, onDelete, onClose }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [productData, setProductData] = useState(product);
+  const [productImages, setProductImages] = useState([]);
+  const [loadingImages, setLoadingImages] = useState(false);
+  
+  const { 
+    getProductWithImages, 
+    uploadProductImage, 
+    deleteProductImage, 
+    setMainProductImage 
+  } = useProducts();
+
+  // Загружаем продукт с изображениями при монтировании
+  useEffect(() => {
+    loadProductWithImages();
+  }, [product.id]);
+
+  const loadProductWithImages = async () => {
+    setLoadingImages(true);
+    try {
+      const data = await getProductWithImages(product.id);
+      if (data) {
+        setProductData(data);
+        setProductImages(data.images || []);
+      }
+    } catch (error) {
+      console.error('Error loading product with images:', error);
+      // Если не получилось загрузить с изображениями, используем обычный продукт
+      setProductData(product);
+    } finally {
+      setLoadingImages(false);
+    }
+  };
+
+  const handleUploadImage = async (productId, file, imageType) => {
+    try {
+      await uploadProductImage(productId, file, imageType);
+      await loadProductWithImages(); // Перезагружаем все данные
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const handleDeleteImage = async (imageId) => {
+    try {
+      await deleteProductImage(imageId);
+      await loadProductWithImages(); // Перезагружаем
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const handleSetMainImage = async (productId, imageId) => {
+    try {
+      await setMainProductImage(productId, imageId);
+      await loadProductWithImages(); // Перезагружаем
+    } catch (error) {
+      alert(error.message);
+    }
+  };
 
   const formatDate = (dateString) => {
     if (!dateString) return 'Не указано';
@@ -59,7 +120,7 @@ const ProductDetail = ({ product, onEdit, onDelete, onClose }) => {
   if (isEditing) {
     return (
       <ProductForm
-        product={product}
+        product={productData}
         onSubmit={handleSave}
         onCancel={() => setIsEditing(false)}
         isEditing={true}
@@ -88,11 +149,11 @@ const ProductDetail = ({ product, onEdit, onDelete, onClose }) => {
         <div className="product-detail-main">
           <div className="product-title-section">
             <div className="product-icon-large">
-              {getCategoryIcon(product.category)}
+              {getCategoryIcon(productData.category)}
             </div>
             <div>
-              <h2>{product.name}</h2>
-              <p className="product-category-detail">{product.category || 'Без категории'}</p>
+              <h2>{productData.name}</h2>
+              <p className="product-category-detail">{productData.category || 'Без категории'}</p>
             </div>
           </div>
         </div>
@@ -103,23 +164,23 @@ const ProductDetail = ({ product, onEdit, onDelete, onClose }) => {
             <div className="info-grid">
               <div className="info-item">
                 <span className="info-label">Производитель:</span>
-                <span className="info-value">{product.manufacturer || 'Не указан'}</span>
+                <span className="info-value">{productData.manufacturer || 'Не указан'}</span>
               </div>
               
               <div className="info-item">
                 <span className="info-label">Модель:</span>
-                <span className="info-value">{product.model || 'Не указана'}</span>
+                <span className="info-value">{productData.model || 'Не указана'}</span>
               </div>
               
               <div className="info-item">
                 <span className="info-label">Серийный номер:</span>
-                <span className="info-value">{product.serial_number || 'Не указан'}</span>
+                <span className="info-value">{productData.serial_number || 'Не указан'}</span>
               </div>
               
               <div className="info-item">
                 <span className="info-label">Цена:</span>
                 <span className="info-value">
-                  {product.price ? `${product.price.toLocaleString('ru-RU')} ₽` : 'Не указана'}
+                  {productData.price ? `${productData.price.toLocaleString('ru-RU')} ₽` : 'Не указана'}
                 </span>
               </div>
             </div>
@@ -130,44 +191,54 @@ const ProductDetail = ({ product, onEdit, onDelete, onClose }) => {
             <div className="info-grid">
               <div className="info-item">
                 <span className="info-label">Дата покупки:</span>
-                <span className="info-value">{formatDate(product.purchase_date)}</span>
+                <span className="info-value">{formatDate(productData.purchase_date)}</span>
               </div>
               
-              {product.warranty_until && (
+              {productData.warranty_until && (
                 <div className="info-item">
                   <span className="info-label">Гарантия до:</span>
-                  <span className="info-value">{formatDate(product.warranty_until)}</span>
+                  <span className="info-value">{formatDate(productData.warranty_until)}</span>
                 </div>
               )}
               
               <div className="info-item">
                 <span className="info-label">Добавлен:</span>
-                <span className="info-value">{formatDateTime(product.created_at)}</span>
+                <span className="info-value">{formatDateTime(productData.created_at)}</span>
               </div>
               
-              {product.updated_at && (
+              {productData.updated_at && (
                 <div className="info-item">
                   <span className="info-label">Обновлен:</span>
-                  <span className="info-value">{formatDateTime(product.updated_at)}</span>
+                  <span className="info-value">{formatDateTime(productData.updated_at)}</span>
                 </div>
               )}
             </div>
           </div>
 
-          {product.description && (
+          {productData.description && (
             <div className="info-section">
               <h3>📝 Описание</h3>
-              <p className="product-description">{product.description}</p>
+              <p className="product-description">{productData.description}</p>
             </div>
           )}
 
-          {product.notes && (
+          {productData.notes && (
             <div className="info-section">
               <h3>🗒️ Заметки</h3>
-              <p className="product-notes">{product.notes}</p>
+              <p className="product-notes">{productData.notes}</p>
             </div>
           )}
         </div>
+
+        {/* Галерея изображений */}
+        <ProductImageGallery
+          productId={productData.id}
+          images={productImages}
+          onUpload={handleUploadImage}
+          onDelete={handleDeleteImage}
+          onSetMain={handleSetMainImage}
+          loading={loadingImages}
+        />
       </div>
     </div>
   );

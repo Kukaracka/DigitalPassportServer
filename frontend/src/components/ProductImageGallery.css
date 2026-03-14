@@ -1,0 +1,301 @@
+.product-image-gallery {
+  padding: 20px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+.gallery-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.gallery-header h3 {
+  margin: 0;
+  color: #333;
+}
+
+.add-image-btn {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: transform 0.2s;
+}
+
+.add-image-btn:hover {
+  transform: translateY(-2px);
+}
+
+/* Модалка загрузки */
+.upload-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.upload-modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 90%;
+}
+
+.upload-modal-content h4 {
+  margin: 0 0 20px 0;
+  color: #333;
+}
+
+.image-type-selector {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.type-btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.type-btn.active {
+  color: white;
+  transform: scale(1.05);
+}
+
+/* Drag & drop зона */
+.upload-area {
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  padding: 30px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-bottom: 20px;
+}
+
+.upload-area.drag-active {
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
+}
+
+.upload-label {
+  cursor: pointer;
+  display: block;
+}
+
+.upload-icon {
+  font-size: 48px;
+  margin-bottom: 10px;
+}
+
+.close-modal-btn {
+  width: 100%;
+  padding: 10px;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* Секции по типам */
+.image-type-section {
+  margin-bottom: 30px;
+}
+
+.image-type-section h4 {
+  margin: 0 0 15px 0;
+  font-size: 18px;
+}
+
+/* Сетка изображений */
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 15px;
+}
+
+.image-card {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+
+.image-card:hover {
+  transform: scale(1.05);
+}
+
+.image-card.main-image {
+  border: 3px solid #ffd700;
+}
+
+.image-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.main-badge {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  background: rgba(255, 215, 0, 0.9);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* Оверлей с кнопками */
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.image-card:hover .image-overlay {
+  opacity: 1;
+}
+
+.overlay-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  transition: transform 0.2s;
+}
+
+.overlay-btn:hover {
+  transform: scale(1.1);
+}
+
+.set-main-btn {
+  background: rgba(255, 215, 0, 0.9);
+  color: white;
+}
+
+.delete-btn {
+  background: rgba(244, 67, 54, 0.9);
+  color: white;
+}
+
+/* Пустое состояние */
+.no-images {
+  text-align: center;
+  padding: 40px;
+  background: white;
+  border-radius: 8px;
+}
+
+.no-images button {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+/* Модалка просмотра */
+.image-viewer-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.image-viewer-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+}
+
+.image-viewer-content img {
+  max-width: 100%;
+  max-height: 80vh;
+  border-radius: 8px;
+}
+
+.image-info {
+  position: absolute;
+  bottom: -60px;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 10px;
+  border-radius: 8px;
+  color: #333;
+}
+
+.close-viewer {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.close-viewer:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .image-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+  
+  .upload-modal-content {
+    padding: 20px;
+  }
+  
+  .image-type-selector {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
