@@ -48,7 +48,7 @@ class AuthService:
         user_dict = user_data.model_dump()
         user_dict["password"] = self._get_password_hash(user_dict["password"])
 
-        new_user = await self.users_repo.create_one(user_dict)  # <- сразу объект модели
+        new_user = await self.users_repo.create_one(user_dict)
         return new_user
 
     async def migrate_passwords(self):
