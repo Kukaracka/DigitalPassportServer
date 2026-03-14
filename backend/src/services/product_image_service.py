@@ -237,3 +237,55 @@ class ProductImageService:
             image_schema.image_url = download_url
         
         return image_schema
+
+
+    async def upload_file_direct(
+        self, 
+        product_id: int, 
+        file: UploadFile,
+        image_type: ImageType = ImageType.PRODUCT
+    ) -> ProductImageReadSchema:
+        """Прямая загрузка файла через сервер"""
+        # Проверяем продукт
+        product = await self.product_repo.read_one(product_id)
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+
+        # Читаем файл
+        file_bytes = await file.read()
+        
+        # Проверяем filename на None
+        if file.filename is None:
+            raise HTTPException(status_code=400, detail="Filename is required")
+            
+        # Генерируем имя
+        ext = file.filename.split('.')[-1] if '.' in file.filename else 'jpg'
+        file_name = f"products/{product_id}/{image_type.value}/{uuid.uuid4()}.{ext}"
+        
+        # Загружаем в MinIO
+        await self.storage.upload_file(
+            file_bytes=file_bytes,
+            file_name=file_name,
+            content_type=file.content_type or f"image/{ext}"
+        )
+
+        # Создаем запись в БД
+        original_name = file.filename if file.filename is not None else "unknown.jpg"
+        
+        image = await self.image_repo.create(
+            product_id=product_id,
+            file_name=file_name,
+            original_name=original_name,
+            image_type=ImageTypeModel(image_type),
+            file_size=len(file_bytes),
+            content_type=file.content_type or f"image/{ext}"
+        )
+
+        # Преобразуем в схему с URL
+        image_schema = ProductImageReadSchema.model_validate(image)
+        image_schema.image_url = self.storage.get_download_url(
+            file_name=file_name,
+            expires=3600
+        )
+        
+        return image_schema
