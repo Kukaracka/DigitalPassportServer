@@ -264,7 +264,7 @@ class ProductImageService:
         file_name = f"products/{product_id}/{image_type.value}/{uuid.uuid4()}.{ext}"
         
         # ИСПРАВЛЕНИЕ: используем правильное имя параметра file_data
-        success = await self.storage.upload_file(
+        success = self.storage.upload_file(
             file_data=file_data,  # параметр называется file_data
             file_name=file_name,
             content_type=file.content_type or f"image/{ext}"
