@@ -29,6 +29,9 @@ class ProductImageRepository:
         content_type: str = None
     ) -> ProductImageModel:
         """Создать запись об изображении"""
+        import logging
+        logger = logging.getLogger(__name__)
+        
         # Проверяем, есть ли уже изображения у продукта
         existing_images = await self.get_by_product(product_id)
         
@@ -37,6 +40,8 @@ class ProductImageRepository:
         
         # Получаем текущее время без часового пояса
         now = self._get_naive_datetime()
+        
+        logger.info(f"Creating image: product_id={product_id}, file_name={file_name}")
         
         image = ProductImageModel(
             product_id=product_id,
@@ -47,12 +52,20 @@ class ProductImageRepository:
             content_type=content_type,
             is_main=is_main,
             sort_order=len(existing_images),
-            created_at=now,  # Используем datetime без tzinfo
-            updated_at=now   # Используем datetime без tzinfo
+            created_at=now,
+            updated_at=now
         )
         
         self.session.add(image)
         await self.session.flush()
+        logger.info(f"Image flushed with ID: {image.id}")
+        
+        await self.session.commit()
+        logger.info(f"Image committed to database")
+        
+        await self.session.refresh(image)
+        logger.info(f"Image refreshed from database")
+        
         return image
 
     async def get_by_product(self, product_id: int) -> List[ProductImageModel]:
