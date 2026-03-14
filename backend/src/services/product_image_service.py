@@ -130,25 +130,35 @@ class ProductImageService:
         
         return image_schema
 
+
     async def get_product_images(self, product_id: int) -> List[ProductImageReadSchema]:
-        """Получить все изображения продукта"""
-        # Проверяем продукт
+        """Получить все изображения продукта с presigned URLs"""
+        # Проверяем, существует ли продукт (опционально)
         product = await self.product_repo.read_one(product_id)
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
 
+        # Получаем изображения из БД
         images = await self.image_repo.get_by_product(product_id)
         
-        # Добавляем URL к каждому изображению
+        logger.info(f"Found {len(images)} images for product {product_id}")
+        
+        # Преобразуем каждое изображение в схему с URL
         result = []
         for image in images:
+            # Валидируем модель БД в Pydantic схему
             image_schema = ProductImageReadSchema.model_validate(image)
+            
+            # Добавляем presigned URL для скачивания
+            # Используем get_download_url из storage_service
             download_url = self.storage.get_download_url(
                 file_name=image.file_name,
-                expires=3600
+                expires=3600  # ссылка действительна 1 час
             )
+            
             if download_url:
                 image_schema.image_url = download_url
+            
             result.append(image_schema)
         
         return result
