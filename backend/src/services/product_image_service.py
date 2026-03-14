@@ -1,3 +1,5 @@
+# /home/kukaracka/Projects/DigitalPassport/backend/src/services/product_image_service.py
+
 import uuid
 from typing import List, Optional
 from fastapi import HTTPException, UploadFile
@@ -44,8 +46,12 @@ class ProductImageService:
         ext = filename.split('.')[-1] if '.' in filename else 'jpg'
         file_name = f"products/{product_id}/{image_type.value}/{uuid.uuid4()}.{ext}"
         
-        # Получаем presigned URL для загрузки - используем правильный метод
-        upload_url = self.storage.get_upload_presigned_url(file_name)
+        # ИСПРАВЛЕНИЕ: используем get_upload_url (есть в StorageService)
+        upload_url = self.storage.get_upload_url(
+            file_name=file_name,
+            expires=3600
+        )
+        
         if not upload_url:
             raise HTTPException(status_code=500, detail="Failed to generate upload URL")
 
@@ -58,8 +64,11 @@ class ProductImageService:
             content_type=f"image/{ext}"
         )
 
-        # Получаем URL для просмотра (будет доступен после загрузки)
-        image_url = self.storage.get_download_url(file_name)
+        # Получаем URL для просмотра (используем get_download_url)
+        image_url = self.storage.get_download_url(
+            file_name=file_name,
+            expires=3600
+        )
 
         return ProductImageUploadResponseSchema(
             id=image.id,
@@ -93,28 +102,31 @@ class ProductImageService:
         ext = file.filename.split('.')[-1] if '.' in file.filename else 'jpg'
         file_name = f"products/{product_id}/{image_type.value}/{uuid.uuid4()}.{ext}"
         
-        # Загружаем в MinIO - исправляем вызов метода
+        # Загружаем в MinIO
         await self.storage.upload_file(
-            file_data=file_bytes,  # меняем file_bytes на file_data
+            file_bytes=file_bytes,
             file_name=file_name,
             content_type=file.content_type or f"image/{ext}"
         )
 
-        # Создаем запись в БД - проверяем что filename не None
+        # Создаем запись в БД
         original_name = file.filename if file.filename is not None else "unknown.jpg"
         
         image = await self.image_repo.create(
             product_id=product_id,
             file_name=file_name,
-            original_name=original_name,  # используем проверенное значение
+            original_name=original_name,
             image_type=ImageTypeModel(image_type),
             file_size=len(file_bytes),
-            content_type=file.content_type or f"image/{ext}"  # используем or для None
+            content_type=file.content_type or f"image/{ext}"
         )
 
         # Преобразуем в схему с URL
         image_schema = ProductImageReadSchema.model_validate(image)
-        image_schema.image_url = self.storage.get_download_url(file_name)
+        image_schema.image_url = self.storage.get_download_url(
+            file_name=file_name,
+            expires=3600
+        )
         
         return image_schema
 
@@ -131,7 +143,10 @@ class ProductImageService:
         result = []
         for image in images:
             image_schema = ProductImageReadSchema.model_validate(image)
-            download_url = self.storage.get_download_url(image.file_name)
+            download_url = self.storage.get_download_url(
+                file_name=image.file_name,
+                expires=3600
+            )
             if download_url:
                 image_schema.image_url = download_url
             result.append(image_schema)
@@ -158,7 +173,10 @@ class ProductImageService:
         result = []
         for image in images:
             image_schema = ProductImageReadSchema.model_validate(image)
-            download_url = self.storage.get_download_url(image.file_name)
+            download_url = self.storage.get_download_url(
+                file_name=image.file_name,
+                expires=3600
+            )
             if download_url:
                 image_schema.image_url = download_url
             result.append(image_schema)
@@ -174,7 +192,10 @@ class ProductImageService:
         if summary["main_image_id"]:
             main_image = await self.image_repo.get_by_id(summary["main_image_id"])
             if main_image:
-                main_image_url = self.storage.get_download_url(main_image.file_name)
+                main_image_url = self.storage.get_download_url(
+                    file_name=main_image.file_name,
+                    expires=3600
+                )
         
         return ProductImageSummarySchema(
             total=summary["total"],
@@ -208,7 +229,10 @@ class ProductImageService:
         # Получаем обновленное изображение
         image = await self.image_repo.get_by_id(image_id)
         image_schema = ProductImageReadSchema.model_validate(image)
-        download_url = self.storage.get_download_url(image.file_name)
+        download_url = self.storage.get_download_url(
+            file_name=image.file_name,
+            expires=3600
+        )
         if download_url:
             image_schema.image_url = download_url
         

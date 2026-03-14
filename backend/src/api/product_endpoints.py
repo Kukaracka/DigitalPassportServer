@@ -256,7 +256,7 @@ async def get_product_with_images(
     image_service: ProductImageService = Depends(get_product_image_service),
 ):
     """Получить продукт вместе со всеми его изображениями"""
-    product = await product_service.read_one_product(product_id)
+    product = await product_service.get_product(product_id)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     
