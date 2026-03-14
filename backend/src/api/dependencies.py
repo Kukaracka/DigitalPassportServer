@@ -1,5 +1,4 @@
 import os
-from typing import Optional
 
 from minio import Minio
 from authx import AuthX, AuthXConfig
@@ -7,24 +6,23 @@ from authx.exceptions import JWTDecodeError
 from fastapi import Depends, HTTPException, Request, status
 from functools import lru_cache
 
-# Импортируем из core.config (который должен быть в src/core/config.py)
 from core.config import get_settings
 from database.models import UserModel
 from repositories.product_repository import ProductRepository
 from repositories.user_repository import UserRepository
 from dotenv import load_dotenv
 
-from services import storage_service
 from services.auth_service import AuthService
 from services.product_service import ProductService
 from services.user_service import UserService
-from services.storage_service import StorageService
+from services.storage_service import StorageService  # Оставляем, используется ниже
 
-# Загружаем .env из src директории
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'))
+from repositories.product_image_repository import ProductImageRepository
+from services.product_image_service import ProductImageService
+
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 
-# JWT Configuration
 secret = os.getenv("SECRET_KEY")
 if secret is None:
     raise Exception("SECRET_KEY environment variable is not set")
@@ -37,7 +35,7 @@ config.JWT_COOKIE_CSRF_PROTECT = False
 
 security = AuthX(config=config)
 
-storage_serv = StorageService()
+
 # MinIO Client Dependency
 @lru_cache
 def get_minio_client() -> Minio:
@@ -53,11 +51,12 @@ def get_minio_client() -> Minio:
     )
 
 
+# Storage Service Dependency
 async def get_storage_service() -> StorageService:
     """
     Dependency для получения StorageService
     """
-    return storage_serv  #
+    return StorageService()
 
 
 # Auth Dependencies
@@ -82,14 +81,12 @@ async def get_current_authorised_user(
 
     sub = getattr(payload, "sub", None)
 
-    # Проверка наличия поля sub в payload
     if sub is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token: missing 'sub' claim",
         )
 
-    # Безопасно конвертируем в int
     try:
         user_id = int(sub)
     except (ValueError, TypeError):
@@ -98,11 +95,9 @@ async def get_current_authorised_user(
             detail="Invalid token: 'sub' must be an integer",
         )
 
-    # Создаём экземпляр репозитория
     user_repo = UserRepository()
     user = await user_repo.read_one(user_id)
 
-    # Проверяем, что пользователь найден
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -121,12 +116,16 @@ async def get_product_repository() -> ProductRepository:
     return ProductRepository()
 
 
+async def get_product_image_repository() -> ProductImageRepository:
+    return ProductImageRepository()
+
+
 # Service Dependencies
 async def get_user_service(
     user_repo: UserRepository = Depends(get_user_repository),
-    storage_servicee: StorageService = Depends(get_storage_service)
+    storage_service: StorageService = Depends(get_storage_service),
 ) -> UserService:
-    return UserService(user_repo, storage_servicee)
+    return UserService(users_repo=user_repo, storage_service=storage_service)
 
 
 async def get_auth_service(
@@ -139,3 +138,15 @@ async def get_product_service(
     product_repo: ProductRepository = Depends(get_product_repository),
 ) -> ProductService:
     return ProductService(product_repo)
+
+
+async def get_product_image_service(
+    image_repo: ProductImageRepository = Depends(get_product_image_repository),
+    product_repo: ProductRepository = Depends(get_product_repository),
+    storage_service: StorageService = Depends(get_storage_service),
+) -> ProductImageService:
+    return ProductImageService(
+        image_repo=image_repo,
+        product_repo=product_repo,
+        storage_service=storage_service
+    )
