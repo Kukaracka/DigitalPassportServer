@@ -90,12 +90,12 @@ class ProductModel(Base):
 # /home/kukaracka/Projects/DigitalPassport/backend/src/database/models.py
 
 class ImageType(str, Enum):
-    RECEIPT = "receipt"        # Чек
-    WARRANTY = "warranty"       # Гарантия
-    PRODUCT = "product"         # Фото товара
-    DOCUMENT = "document"       # Документ
-    CERTIFICATE = "certificate" # Сертификат
-    OTHER = "other"             # Другое
+    RECEIPT = "RECEIPT"      # Теперь значение совпадает с БД
+    WARRANTY = "WARRANTY"
+    PRODUCT = "PRODUCT"
+    DOCUMENT = "DOCUMENT"
+    CERTIFICATE = "CERTIFICATE"
+    OTHER = "OTHER"
 
 
 class ProductImageModel(Base):
