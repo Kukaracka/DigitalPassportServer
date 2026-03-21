@@ -1,13 +1,12 @@
-import os
 from authlib.integrations.starlette_client import OAuth
-from dotenv import load_dotenv
+from core.config import get_settings
 
-load_dotenv()
 
 oauth = OAuth()
+settings = get_settings()
 
-cid = os.getenv("GOOGLE_CLIENT_ID")
-cscr = os.getenv("GOOGLE_CLIENT_SECRET")
+cid = settings.CID
+cscr = settings.CSCR
 
 oauth.register(
     name="google",

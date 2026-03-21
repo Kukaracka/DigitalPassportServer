@@ -1,13 +1,11 @@
-import os
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi import FastAPI
 from api.api_router import api_router
 import uvicorn
 from database.models import Base, engine
-from dotenv import load_dotenv
+from core.config import get_settings
 
-load_dotenv()
-
+settings = get_settings()
 
 async def create_tables():
     async with engine.begin() as conn:
@@ -17,7 +15,7 @@ async def create_tables():
 app = FastAPI()
 app.add_event_handler("startup", create_tables)
 
-secret = os.getenv("SECRET_KEY")
+secret = settings.SECRET_KEY
 if secret is None:
     raise Exception("You have no secret auth key in .env file")
 

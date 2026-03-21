@@ -1,9 +1,8 @@
-import os
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import RedirectResponse
-from dotenv import load_dotenv
 
 from api.dependencies import get_auth_service, get_user_repository, verify_token
+from core.config import get_settings
 from database.models import UserModel
 from repositories.user_repository import UserRepository
 from schemas.user_schemas import (
@@ -15,9 +14,10 @@ from api.dependencies import config, security
 from services.auth_service import AuthService
 from services.google_oauth import oauth
 
-load_dotenv()
 
 auth_router = APIRouter(prefix="", tags=["Auth"])
+
+settings = get_settings()
 
 
 @auth_router.post("/login", response_model=TokenResponseSchema)
@@ -63,9 +63,7 @@ async def google_login(
     Начало авторизации через Google.
     Перенаправляет пользователя на Google login.
     """
-    return await oauth.google.authorize_redirect(
-        request, os.getenv("GOOGLE_REDIRECT_URI")
-    )
+    return await oauth.google.authorize_redirect(request, settings.GOOGLE_REDIRECT_URI)
 
 
 @auth_router.get("/google/callback")
@@ -106,9 +104,7 @@ async def google_callback(
     jwt_token = security.create_access_token(uid=str(user.id))
     response.set_cookie(config.JWT_ACCESS_COOKIE_NAME, jwt_token)
 
-    return RedirectResponse(
-        f"{os.getenv('FRONTEND_URL')}/auth/success?token={jwt_token}"
-    )
+    return RedirectResponse(f"{settings.FRONTEND_URL}/auth/success?token={jwt_token}")
 
 
 @auth_router.post("/migrate-passwords", include_in_schema=False)

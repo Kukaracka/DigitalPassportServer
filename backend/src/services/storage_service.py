@@ -8,21 +8,22 @@ import urllib3
 from minio import Minio
 from minio.error import S3Error
 
+from core.config import get_settings
+
 logger = logging.getLogger(__name__)
 
 
+settings = get_settings()
 
 class StorageService:
 
     def __init__(self):
-        self.internal_endpoint = os.getenv("MINIO_ENDPOINT", "minio:9000")
+        self.internal_endpoint = settings.MINIO_ENDPOINT
         self.public_endpoint = os.getenv("MINIO_PUBLIC_ENDPOINT", "194.150.220.138:9000")
-
-        self.access_key = os.getenv("MINIO_ACCESS_KEY", "minioadmin")
-        self.secret_key = os.getenv("MINIO_SECRET_KEY", "strongpassword")
-        self.bucket = os.getenv("MINIO_BUCKET", "avatars")
-
-        self.secure = os.getenv("MINIO_SECURE", "true").lower() == "true"
+        self.access_key = settings.MINIO_ACCESS_KEY
+        self.secret_key = settings.MINIO_SECRET_KEY
+        self.bucket = settings.MINIO_BUCKET
+        self.secure = settings.MINIO_SECURE
 
         http_client = urllib3.PoolManager(
             cert_reqs="CERT_NONE",

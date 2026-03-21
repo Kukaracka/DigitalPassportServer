@@ -1,20 +1,21 @@
 # /home/kukaracka/Projects/DigitalPassport/backend/src/services/product_image_service.py
 
-import uuid
-from typing import List, Optional
-from fastapi import HTTPException, UploadFile
 import logging
+import uuid
+from typing import List
 
+from fastapi import HTTPException, UploadFile
+
+from database.models import ImageType as ImageTypeModel
 from repositories.product_image_repository import ProductImageRepository
 from repositories.product_repository import ProductRepository
-from services.storage_service import StorageService
 from schemas.product_image_schemas import (
+    ImageType,
     ProductImageReadSchema,
-    ProductImageUploadResponseSchema,
     ProductImageSummarySchema,
-    ImageType
+    ProductImageUploadResponseSchema,
 )
-from database.models import ImageType as ImageTypeModel
+from services.storage_service import StorageService
 
 logger = logging.getLogger(__name__)
 
