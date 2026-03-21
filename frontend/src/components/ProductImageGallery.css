@@ -1,38 +1,43 @@
 .product-image-gallery {
-  padding: 20px;
-  background: #f9f9f9;
-  border-radius: 8px;
-  margin-top: 20px;
+  background: white;
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  margin-top: 0;
 }
 
 .gallery-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .gallery-header h3 {
   margin: 0;
   color: #333;
+  font-size: 16px;
 }
 
 .add-image-btn {
-  padding: 8px 16px;
+  padding: 6px 12px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   font-weight: 500;
+  font-size: 12px;
   transition: transform 0.2s;
+  white-space: nowrap;
 }
 
 .add-image-btn:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
-/* Модалка загрузки */
 .upload-modal {
   position: fixed;
   top: 0;
@@ -48,47 +53,50 @@
 
 .upload-modal-content {
   background: white;
-  padding: 30px;
+  padding: 20px;
   border-radius: 12px;
   max-width: 500px;
   width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
 }
 
 .upload-modal-content h4 {
-  margin: 0 0 20px 0;
+  margin: 0 0 15px 0;
   color: #333;
+  font-size: 16px;
 }
 
 .image-type-selector {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 10px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 8px;
+  margin-bottom: 15px;
 }
 
 .type-btn {
-  padding: 8px 12px;
-  border: none;
-  border-radius: 4px;
+  padding: 6px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 12px;
   transition: all 0.2s;
+  background: #f8fafc;
 }
 
 .type-btn.active {
   color: white;
-  transform: scale(1.05);
+  transform: scale(1.02);
 }
 
-/* Drag & drop зона */
 .upload-area {
   border: 2px dashed #ccc;
   border-radius: 8px;
-  padding: 30px;
+  padding: 20px;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .upload-area.drag-active {
@@ -102,35 +110,44 @@
 }
 
 .upload-icon {
-  font-size: 48px;
-  margin-bottom: 10px;
+  font-size: 36px;
+  margin-bottom: 8px;
+}
+
+.upload-label div {
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.upload-label small {
+  font-size: 11px;
+  color: #999;
 }
 
 .close-modal-btn {
   width: 100%;
-  padding: 10px;
+  padding: 8px;
   background: #f0f0f0;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 13px;
 }
 
-/* Секции по типам */
 .image-type-section {
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 
 .image-type-section h4 {
-  margin: 0 0 15px 0;
-  font-size: 18px;
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  font-weight: 600;
 }
 
-/* Сетка изображений */
 .image-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 15px;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 10px;
 }
 
 .image-card {
@@ -139,16 +156,17 @@
   border-radius: 8px;
   overflow: hidden;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s;
+  background: #f8fafc;
 }
 
 .image-card:hover {
-  transform: scale(1.05);
+  transform: scale(1.02);
 }
 
 .image-card.main-image {
-  border: 3px solid #ffd700;
+  border: 2px solid #ffd700;
 }
 
 .image-card img {
@@ -159,16 +177,15 @@
 
 .main-badge {
   position: absolute;
-  top: 5px;
-  left: 5px;
+  top: 4px;
+  left: 4px;
   background: rgba(255, 215, 0, 0.9);
-  padding: 2px 6px;
+  padding: 2px 4px;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: bold;
 }
 
-/* Оверлей с кнопками */
 .image-overlay {
   position: absolute;
   top: 0;
@@ -179,9 +196,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   opacity: 0;
-  transition: opacity 0.3s;
+  transition: opacity 0.2s;
 }
 
 .image-card:hover .image-overlay {
@@ -189,13 +206,16 @@
 }
 
 .overlay-btn {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   border: none;
   cursor: pointer;
-  font-size: 20px;
+  font-size: 16px;
   transition: transform 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .overlay-btn:hover {
@@ -204,7 +224,7 @@
 
 .set-main-btn {
   background: rgba(255, 215, 0, 0.9);
-  color: white;
+  color: #333;
 }
 
 .delete-btn {
@@ -212,25 +232,29 @@
   color: white;
 }
 
-/* Пустое состояние */
 .no-images {
   text-align: center;
-  padding: 40px;
-  background: white;
+  padding: 30px;
+  background: #f8fafc;
   border-radius: 8px;
 }
 
+.no-images p {
+  margin: 0 0 10px 0;
+  color: #718096;
+  font-size: 13px;
+}
+
 .no-images button {
-  padding: 10px 20px;
+  padding: 6px 12px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  margin-top: 10px;
+  font-size: 12px;
 }
 
-/* Модалка просмотра */
 .image-viewer-modal {
   position: fixed;
   top: 0;
@@ -258,44 +282,87 @@
 
 .image-info {
   position: absolute;
-  bottom: -60px;
+  bottom: -50px;
   left: 0;
   right: 0;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 8px;
   border-radius: 8px;
-  color: #333;
+  color: white;
+  font-size: 11px;
+}
+
+.image-info p {
+  margin: 0;
+  word-break: break-word;
 }
 
 .close-viewer {
   position: absolute;
   top: -40px;
   right: 0;
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.2);
   color: white;
   border: none;
   cursor: pointer;
-  font-size: 20px;
+  font-size: 18px;
 }
 
 .close-viewer:hover {
   background: rgba(255, 255, 255, 0.3);
 }
 
-/* Адаптивность */
 @media (max-width: 768px) {
+  .product-image-gallery {
+    padding: 12px;
+  }
+  
+  .gallery-header h3 {
+    font-size: 15px;
+  }
+  
   .image-grid {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 8px;
   }
   
   .upload-modal-content {
-    padding: 20px;
+    padding: 15px;
   }
   
   .image-type-selector {
     grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .image-info {
+    bottom: -60px;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-image-gallery {
+    padding: 10px;
+  }
+  
+  .gallery-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .add-image-btn {
+    text-align: center;
+  }
+  
+  .image-grid {
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  }
+  
+  .overlay-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
   }
 }

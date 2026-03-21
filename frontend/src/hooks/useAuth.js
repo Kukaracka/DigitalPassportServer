@@ -18,15 +18,16 @@ export const useAuth = () => {
       setIsAuthenticated(true);
       
       const userData = await AuthAPI.getCurrentUser();
-      console.log('👤 User data after checkAuth:', userData);
       setUser(userData);
       
     } catch (error) {
-      console.log('❌ Auth check failed:', error);
       setIsAuthenticated(false);
       setUser(null);
     } finally {
-      setLoading(false);
+      // Минимальная задержка для плавности
+      setTimeout(() => {
+        setLoading(false);
+      }, 300);
     }
   };
 
@@ -49,7 +50,9 @@ export const useAuth = () => {
       setUser(null);
       throw error;
     } finally {
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false);
+      }, 300);
     }
   };
 
@@ -65,7 +68,9 @@ export const useAuth = () => {
       setError(errorMessage);
       throw error;
     } finally {
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false);
+      }, 300);
     }
   };
 
@@ -85,23 +90,20 @@ export const useAuth = () => {
       setError(errorMessage);
       throw error;
     } finally {
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false);
+      }, 300);
     }
   };
 
-  // Загрузка аватарки
   const uploadAvatar = async (file) => {
     try {
       setError(null);
       setLoading(true);
       
-      console.log('🚀 Starting avatar upload...');
       const result = await AuthAPI.uploadAvatar(file);
-      console.log('✅ Upload result:', result);
       
-      // Обновляем данные пользователя, чтобы получить новый avatar_url
       const updatedUserData = await AuthAPI.getCurrentUser();
-      console.log('👤 Updated user data:', updatedUserData);
       setUser(updatedUserData);
       
       return result;
@@ -110,7 +112,9 @@ export const useAuth = () => {
       setError(errorMessage);
       throw error;
     } finally {
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false);
+      }, 300);
     }
   };
 
