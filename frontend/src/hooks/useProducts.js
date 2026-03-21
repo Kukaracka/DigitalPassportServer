@@ -65,9 +65,14 @@ export const useProducts = () => {
     }
   };
 
+  const getProductById = (productId) => {
+    return products.find(product => product.id === productId);
+  };
+
   const getProductWithImages = async (productId) => {
     try {
-      return await ProductImageAPI.getProductWithImages(productId);
+      const data = await ProductImageAPI.getProductWithImages(productId);
+      return data;
     } catch (error) {
       console.error('Error getting product with images:', error);
       throw error;
@@ -89,7 +94,8 @@ export const useProducts = () => {
 
   const getProductImages = async (productId) => {
     try {
-      return await ProductImageAPI.getProductImages(productId);
+      const images = await ProductImageAPI.getProductImages(productId);
+      return images;
     } catch (error) {
       console.error('Error getting images:', error);
       throw error;
@@ -98,7 +104,8 @@ export const useProducts = () => {
 
   const getProductImagesByType = async (productId, imageType) => {
     try {
-      return await ProductImageAPI.getImagesByType(productId, imageType);
+      const images = await ProductImageAPI.getImagesByType(productId, imageType);
+      return images;
     } catch (error) {
       console.error('Error getting images by type:', error);
       throw error;
@@ -133,15 +140,12 @@ export const useProducts = () => {
 
   const getImageSummary = async (productId) => {
     try {
-      return await ProductImageAPI.getImageSummary(productId);
+      const summary = await ProductImageAPI.getImageSummary(productId);
+      return summary;
     } catch (error) {
       console.error('Error getting image summary:', error);
       throw error;
     }
-  };
-
-  const getProductById = (productId) => {
-    return products.find(product => product.id === productId);
   };
 
   const getProductsByCategory = (category) => {
@@ -237,6 +241,7 @@ export const useProducts = () => {
     addProduct,
     updateProduct,
     deleteProduct,
+    getProductById,
     getProductWithImages,
     uploadProductImage,
     getProductImages,
@@ -244,7 +249,6 @@ export const useProducts = () => {
     deleteProductImage,
     setMainProductImage,
     getImageSummary,
-    getProductById,
     getProductsByCategory,
     getProductsByPriceRange,
     getProductsByDateRange,
@@ -252,6 +256,6 @@ export const useProducts = () => {
     sortProducts,
     getCategories,
     getManufacturers,
-    getPriceStats
+    getPriceStats,
   };
 };

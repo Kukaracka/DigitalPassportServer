@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ProductForm from './ProductForm';
 import ProductImageGallery from './ProductImageGallery';
+import LoadingSpinner from './LoadingSpinner';
 import { useProducts } from '../hooks/useProducts';
 import './ProductDetail.css';
 
@@ -17,7 +18,6 @@ const ProductDetail = ({ product, onEdit, onDelete, onClose }) => {
     setMainProductImage 
   } = useProducts();
 
-  // Загружаем продукт с изображениями при монтировании
   useEffect(() => {
     loadProductWithImages();
   }, [product.id]);
@@ -32,7 +32,6 @@ const ProductDetail = ({ product, onEdit, onDelete, onClose }) => {
       }
     } catch (error) {
       console.error('Error loading product with images:', error);
-      // Если не получилось загрузить с изображениями, используем обычный продукт
       setProductData(product);
     } finally {
       setLoadingImages(false);
@@ -42,7 +41,7 @@ const ProductDetail = ({ product, onEdit, onDelete, onClose }) => {
   const handleUploadImage = async (productId, file, imageType) => {
     try {
       await uploadProductImage(productId, file, imageType);
-      await loadProductWithImages(); // Перезагружаем все данные
+      await loadProductWithImages();
     } catch (error) {
       alert(error.message);
     }
@@ -51,7 +50,7 @@ const ProductDetail = ({ product, onEdit, onDelete, onClose }) => {
   const handleDeleteImage = async (imageId) => {
     try {
       await deleteProductImage(imageId);
-      await loadProductWithImages(); // Перезагружаем
+      await loadProductWithImages();
     } catch (error) {
       alert(error.message);
     }
@@ -60,7 +59,7 @@ const ProductDetail = ({ product, onEdit, onDelete, onClose }) => {
   const handleSetMainImage = async (productId, imageId) => {
     try {
       await setMainProductImage(productId, imageId);
-      await loadProductWithImages(); // Перезагружаем
+      await loadProductWithImages();
     } catch (error) {
       alert(error.message);
     }
@@ -128,21 +127,17 @@ const ProductDetail = ({ product, onEdit, onDelete, onClose }) => {
     );
   }
 
+  if (loadingImages && !productData) {
+    return <LoadingSpinner message="Загрузка информации о продукте..." />;
+  }
+
   return (
     <div className="product-detail">
       <div className="product-detail-header">
         <button className="back-btn" onClick={onClose}>
-          ← Назад к списку
+          ← Назад
         </button>
         <h1>Информация о продукте</h1>
-        <div className="product-actions">
-          <button className="edit-btn" onClick={handleEdit}>
-            ✏️ Редактировать
-          </button>
-          <button className="delete-btn" onClick={handleDelete}>
-            🗑️ Удалить
-          </button>
-        </div>
       </div>
 
       <div className="product-detail-content">
@@ -230,7 +225,15 @@ const ProductDetail = ({ product, onEdit, onDelete, onClose }) => {
           )}
         </div>
 
-        {/* Галерея изображений */}
+        <div className="product-action-buttons">
+          <button className="edit-btn-large" onClick={handleEdit}>
+            ✏️ Редактировать
+          </button>
+          <button className="delete-btn-large" onClick={handleDelete}>
+            🗑️ Удалить
+          </button>
+        </div>
+
         <ProductImageGallery
           productId={productData.id}
           images={productImages}

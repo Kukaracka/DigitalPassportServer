@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import ProductsList from './ProductsList';
+import LoadingSpinner from './LoadingSpinner';
 import { useProducts } from '../hooks/useProducts';
 import './Products.css';
 
@@ -27,6 +28,10 @@ const Products = ({ user, onBack }) => {
       loadProducts();
     }
   }, [user]);
+
+  if (loading && products.length === 0) {
+    return <LoadingSpinner message="Загрузка продуктов..." />;
+  }
 
   return (
     <div className="products-container">

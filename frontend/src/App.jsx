@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
+import LoadingSpinner from './components/LoadingSpinner';
 import { useAuth } from './hooks/useAuth';
 import './App.css';
 
@@ -20,6 +21,7 @@ function App() {
   } = useAuth();
 
   const [currentView, setCurrentView] = useState('login');
+  const [transitionLoading, setTransitionLoading] = useState(false);
 
   useEffect(() => {
     if (error) {
@@ -28,41 +30,58 @@ function App() {
   }, [currentView]);
 
   const handleLogin = async (credentials) => {
+    setTransitionLoading(true);
     try {
       await login(credentials);
     } catch (error) {
       console.error('Login error:', error);
+    } finally {
+      setTransitionLoading(false);
     }
   };
 
   const handleRegister = async (userData) => {
+    setTransitionLoading(true);
     try {
       await register(userData);
       setCurrentView('login');
     } catch (error) {
       console.error('Register error:', error);
+    } finally {
+      setTransitionLoading(false);
     }
   };
 
   const handleUpdateUser = async (userData) => {
+    setTransitionLoading(true);
     try {
       await updateUser(userData);
     } catch (error) {
-      throw error; 
+      throw error;
+    } finally {
+      setTransitionLoading(false);
     }
   };
 
   const handleAvatarUpload = async (file) => {
+    setTransitionLoading(true);
     try {
       await uploadAvatar(file);
     } catch (error) {
       throw error;
+    } finally {
+      setTransitionLoading(false);
     }
   };
 
   const handleLogout = async () => {
-    await logout();
-    setCurrentView('login');
+    setTransitionLoading(true);
+    try {
+      await logout();
+      setCurrentView('login');
+    } finally {
+      setTransitionLoading(false);
+    }
   };
 
   const handleSwitchToLogin = () => {
@@ -73,15 +92,9 @@ function App() {
     setCurrentView('register');
   };
 
-  console.log('🔄 App render - user:', user);
-
-  if (loading) {
-    return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Загрузка...</p>
-      </div>
-    );
+  // Показываем спиннер при загрузке
+  if (loading || transitionLoading) {
+    return <LoadingSpinner message="Загрузка..." />;
   }
 
   return (
