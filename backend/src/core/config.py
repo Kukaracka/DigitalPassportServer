@@ -4,41 +4,41 @@ from functools import lru_cache
 import os
 from dotenv import load_dotenv
 
-# Загружаем .env из src директории
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 class Settings(BaseSettings):
     # MinIO settings
-    MINIO_ENDPOINT: str = os.getenv("MINIO_ENDPOINT", "minio:9000")
-    MINIO_ACCESS_KEY: str = os.getenv("MINIO_ACCESS_KEY", "")
-    MINIO_SECRET_KEY: str = os.getenv("MINIO_SECRET_KEY", "")
-    MINIO_SECURE: bool = os.getenv("MINIO_SECURE", "False").lower() == "true"
-    MINIO_BUCKET: str = os.getenv("MINIO_BUCKET", "avatars")
-    MINIO_PUBLIC_URL: str = os.getenv("MINIO_PUBLIC_URL", "http://localhost:9000")
+    MINIO_ENDPOINT: str = "minio:9000"
+    MINIO_ACCESS_KEY: str = ""
+    MINIO_SECRET_KEY: str = ""
+    MINIO_SECURE: bool = False
+    MINIO_BUCKET: str = "avatars"
+    MINIO_PUBLIC_URL: str = "http://localhost:9000"
     
-    #Google settings
-    CID = os.getenv("GOOGLE_CLIENT_ID")
-    CSCR = os.getenv("GOOGLE_CLIENT_SECRET")
-    GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI")
-    FRONTEND_URL = os.getenv("FRONTEND_URL")
+    # Google settings
+    CID: str = "id_client"
+    CSCR: str = "google_secret"
+    GOOGLE_REDIRECT_URI: str = "https://example.com"
+    FRONTEND_URL: str = "https://example.com"
+    
     # Database settings
-    DB_USER = os.getenv('DB_USER')
-    DB_PASSWORD = os.getenv('DB_PASSWORD')
-    DB_HOST = os.getenv('DB_HOST')
-    DB_PORT = os.getenv('DB_PORT')
-    DB_NAME = os.getenv('DB_NAME')
-
-# Собираем строку подключения
-    DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    DB_USER: str = ""
+    DB_PASSWORD: str = ""
+    DB_HOST: str = ""
+    DB_PORT: str = ""
+    DB_NAME: str = ""
     
     # JWT settings
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key")
+    SECRET_KEY: str = "your-secret-key"
     
-    # Разрешаем любые дополнительные поля из .env
+    @property
+    def DATABASE_URL(self) -> str:
+        return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+    
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
-        extra = "allow"  # Разрешаем дополнительные поля
+        extra = "allow"
 
 @lru_cache
 def get_settings() -> Settings:
