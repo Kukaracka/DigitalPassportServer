@@ -1,2 +1,6 @@
 key.pem
 ssl/
+
+__pycache__/
+pyproject.toml
+.env
