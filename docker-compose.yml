@@ -31,7 +31,7 @@ services:
   backend:
     build:
       context: .
-      dockerfile: ./Dockerfile
+      dockerfile: Dockerfile
     depends_on:
       - db
       - minio
@@ -48,7 +48,7 @@ services:
       MINIO_CERT_CHECK: "false"
 
     volumes:
-      - ./backend:/app
+      - ./src:/app/src
       - ./ssl:/app/ssl
     ports:
       - "8443:8443"
