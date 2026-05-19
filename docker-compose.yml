@@ -20,23 +20,19 @@ services:
     command: server /data --console-address ":9001" --address ":9000"
 
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/kukaracka/digitalpassportserver:latest
     depends_on:
       - db
       - minio
-
     volumes:
-      - ./src:/app/src
+      # - ./src:/app/src
       - ./ssl:/app/ssl
     ports:
       - "8443:8443"
     command: [
       "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8443",
       "--ssl-keyfile", "/app/ssl/key.pem",
-      "--ssl-certfile", "/app/ssl/cert.pem",
-      "--reload"
+      "--ssl-certfile", "/app/ssl/cert.pem"
     ]
 
 volumes:
