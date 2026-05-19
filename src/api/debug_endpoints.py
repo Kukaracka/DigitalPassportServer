@@ -7,7 +7,7 @@ debug_router = APIRouter(prefix="/debug", tags=["Debug"])
 
 
 @debug_router.get(
-    "/",
+    "/test/",
     response_description="Just test for protected endpoint",
 )
 async def get_users(current_user: UserModel = Depends(verify_token)) -> dict:
