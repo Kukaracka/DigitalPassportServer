@@ -58,7 +58,7 @@ jobs:
 
             docker compose pull backend
 
-            docker compose up -d backend
+            docker compose up -d
 
             docker image prune -f
 
