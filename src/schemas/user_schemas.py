@@ -1,6 +1,11 @@
 from typing import Optional
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, computed_field, field_validator
-from services.storage_service import StorageService
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    field_validator,
+)
 
 
 class UserSchema(BaseModel):
@@ -8,6 +13,10 @@ class UserSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class DeleteUserRequest(BaseModel):
+    password: str
 
 
 class UserLoginSchema(BaseModel):
@@ -33,6 +42,7 @@ class UserCreateSchema(BaseModel):
             raise ValueError("The password must consist of at least 8 characters")
         return v
 
+
 class UserReadSchema(BaseModel):
     id: int
     username: str
@@ -43,9 +53,9 @@ class UserReadSchema(BaseModel):
     phone_number: str
     avatar: Optional[str] = None
     avatar_url: Optional[str] = None  # Убедитесь, что это поле есть!
-    avatar_upload_url: Optional[str] = None  # И это поле есть!   
+    avatar_upload_url: Optional[str] = None  # И это поле есть!
     # Убираем _storage_service из модели полностью!
-    
+
     # @computed_field
     # @property
     # def avatar_url(self) -> Optional[str]:
@@ -59,9 +69,22 @@ class UserReadSchema(BaseModel):
     #     """URL для загрузки аватара"""
     #     return None  # Будет заполнено в сервисе
 
-    model_config = ConfigDict(
-        from_attributes=True
-    )
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ChangePasswordSchema(BaseModel):
+    old_password: str
+    new_password: str
+
+    @field_validator("new_password")
+    def password_complexity(cls, v):
+        if not any(c.isupper() for c in v):
+            raise ValueError("Password must contain at least one uppercase letter")
+        if not any(c.isdigit() for c in v):
+            raise ValueError("Password must contain at least one digit")
+        if len(v) < 8:
+            raise ValueError("The password must consist of at least 8 characters")
+        return v
 
 
 class UserUpdateSchema(BaseModel):
