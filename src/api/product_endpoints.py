@@ -1,41 +1,36 @@
 from typing import List
-from fastapi import APIRouter, Depends, status, Query
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
-from typing import List
-from datetime import date
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Query,
+    UploadFile,
+    status,
+)
 
 from api.dependencies import (
-    get_product_service,
-    get_product_image_service,
     get_current_authorised_user,
+    get_product_image_service,
+    get_product_service,
 )
 from database.models import UserModel
-from schemas.product_schemas import (
-    ProductCreateSchema,
-    ProductReadSchema,
-    ProductUpdateSchema,
-)
 from schemas.product_image_schemas import (
-    ProductImageReadSchema,
-    ProductImageUploadResponseSchema,
-    ProductImageSummarySchema,
-    ProductWithImagesSchema,
     ImageType,
+    ProductImageReadSchema,
+    ProductImageSummarySchema,
+    ProductImageUploadResponseSchema,
+    ProductWithImagesSchema,
 )
-from services.product_service import ProductService
-from services.product_image_service import ProductImageService
-
-
-from api.dependencies import get_current_authorised_user, get_product_service
-from database.models import UserModel
-from schemas.product_image_schemas import ProductImageUploadResponseSchema
 from schemas.product_schemas import (
     ProductCreateSchema,
-    ProductUpdateSchema,
-    ProductReadSchema,
     ProductListSchema,
+    ProductReadSchema,
+    ProductUpdateSchema,
 )
+from services.product_image_service import ProductImageService
 from services.product_service import ProductService
 
 product_router = APIRouter(prefix="/products", tags=["Products"])

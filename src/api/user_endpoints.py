@@ -1,9 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException
 
-from api.dependencies import get_current_authorised_user, get_user_service, get_storage_service
+from api.dependencies import (
+    get_current_authorised_user,
+    get_user_service,
+)
 from database.models import UserModel
-from schemas.user_schemas import UserCreateSchema, UserReadSchema, UserUpdateSchema
-from services.storage_service import StorageService
+from schemas.user_schemas import (
+    ChangePasswordSchema,
+    DeleteUserRequest,
+    UserCreateSchema,
+    UserReadSchema,
+    UserUpdateSchema,
+)
 from services.user_service import UserService
 
 user_router = APIRouter(prefix="/users", tags=["Users"])
@@ -39,13 +47,13 @@ async def get_user(
 ):
     # Получаем данные пользователя
     user_data = await user_service.read_one_user(current_user.id)
-    
+
     if not user_data:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
     # Устанавливаем storage_service для вычисления URL
     # user_data.set_storage_service(storage_service)
-    
+
     return user_data
 
 
@@ -64,13 +72,21 @@ async def get_users(
     return user_data
 
 
-@user_router.delete("/", response_description="User has been deleted")
-async def detele_user(user_id):
-    """
-    Тут нихуя нет если чо
-    """
-    # TODO: delete logic
-    return {"user_id": user_id, "deleted": True}
+@user_router.delete(
+    "/me",
+    response_description="User deleted successfully",
+)
+async def delete_user(
+    delete_data: DeleteUserRequest,
+    current_user: UserModel = Depends(get_current_authorised_user),
+    user_service: UserService = Depends(get_user_service),
+):
+    await user_service.delete_user(
+        user_id=current_user.id,
+        password=delete_data.password,
+    )
+
+    return {"message": "User deleted successfully"}
 
 
 @user_router.put(
@@ -95,3 +111,21 @@ async def update_user(
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@user_router.put(
+    "/me/password",
+    response_description="Password changed successfully",
+)
+async def change_password(
+    password_data: ChangePasswordSchema,
+    current_user: UserModel = Depends(get_current_authorised_user),
+    user_service: UserService = Depends(get_user_service),
+):
+    await user_service.change_password(
+        user_id=current_user.id,
+        old_password=password_data.old_password,
+        new_password=password_data.new_password,
+    )
+
+    return {"message": "Password changed successfully"}

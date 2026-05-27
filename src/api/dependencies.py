@@ -12,7 +12,7 @@ from repositories.user_repository import UserRepository
 from services.auth_service import AuthService
 from services.product_service import ProductService
 from services.user_service import UserService
-from services.storage_service import StorageService  
+from services.storage_service import StorageService
 
 from repositories.product_image_repository import ProductImageRepository
 from services.product_image_service import ProductImageService
@@ -115,14 +115,6 @@ async def get_product_image_repository() -> ProductImageRepository:
     return ProductImageRepository()
 
 
-# Service Dependencies
-async def get_user_service(
-    user_repo: UserRepository = Depends(get_user_repository),
-    storage_service: StorageService = Depends(get_storage_service),
-) -> UserService:
-    return UserService(users_repo=user_repo, storage_service=storage_service)
-
-
 async def get_auth_service(
     user_repo: UserRepository = Depends(get_user_repository),
 ) -> AuthService:
@@ -144,4 +136,18 @@ async def get_product_image_service(
         image_repo=image_repo,
         product_repo=product_repo,
         storage_service=storage_service,
+    )
+
+
+async def get_user_service(
+    user_repo: UserRepository = Depends(get_user_repository),
+    storage_service: StorageService = Depends(get_storage_service),
+    auth_service: AuthService = Depends(get_auth_service),
+    product_service: ProductService = Depends(get_product_service),
+) -> UserService:
+    return UserService(
+        users_repo=user_repo,
+        storage_service=storage_service,
+        auth_service=auth_service,
+        product_service=product_service,
     )
