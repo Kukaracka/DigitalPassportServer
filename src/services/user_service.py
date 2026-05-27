@@ -1,17 +1,15 @@
+import logging
+import traceback
 from typing import Optional
 
-from fastapi import HTTPException, status
-from api.dependencies import get_auth_service
+from fastapi import HTTPException
+
 from database.models import UserModel
+from repositories.user_repository import UserRepository
 from schemas.user_schemas import UserCreateSchema, UserReadSchema, UserUpdateSchema
 from services.auth_service import AuthService
 from services.product_service import ProductService
 from services.storage_service import StorageService
-from utils.repository import SQLAlchemyRepository
-
-
-import logging
-import traceback
 
 logger = logging.getLogger(__name__)
 
@@ -19,10 +17,10 @@ logger = logging.getLogger(__name__)
 class UserService:
     def __init__(
         self,
-        users_repo: SQLAlchemyRepository[UserModel],
+        users_repo: UserRepository,
         storage_service: StorageService,
-        auth_service: AuthService | None = None,
-        product_service: ProductService | None = None,
+        auth_service: AuthService,
+        product_service: ProductService
     ):
         self.users_repo = users_repo
         self.storage_service = storage_service
