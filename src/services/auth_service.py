@@ -19,6 +19,9 @@ class AuthService:
     def _verify_password(self, plain_password: str, hashed_password: str) -> bool:
         return self.pwd_context.verify(plain_password, hashed_password)
 
+    def verify_password(self, plain_password: str, hashed_password: str) -> bool:
+        return self._verify_password(plain_password, hashed_password)
+
     def _get_password_hash(self, password: str) -> str:
         return self.pwd_context.hash(password)
 
@@ -34,6 +37,24 @@ class AuthService:
 
         token = security.create_access_token(uid=str(user.id))
         return token
+
+    def verify_password(self, plain_password: str, hashed_password: str) -> bool:
+        return self._verify_password(plain_password, hashed_password)
+
+    async def change_password(
+        self,
+        user: UserModel,
+        old_password: str,
+        new_password: str,
+    ):
+        if not self.verify_password(old_password, user.password):
+            raise HTTPException(status_code=400, detail="Invalid old password")
+
+        new_hashed_password = self._get_password_hash(new_password)
+
+        await self.users_repo.update_one(user.id, {"password": new_hashed_password})
+
+        return True
 
     async def registrate_user(self, user_data: UserCreateSchema) -> UserModel:
         """

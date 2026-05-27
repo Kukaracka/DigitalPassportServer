@@ -38,9 +38,9 @@ class ProductService:
         product_dict["created_at"] = now
         product_dict["updated_at"] = now
 
-        product_id = await self.product_repo.create_one(product_dict)
+        created_product = await self.product_repo.create_one(product_dict)
 
-        return product_id
+        return ProductReadSchema.model_validate(created_product)
 
     async def get_product(
         self, product_id: int, owner_id: Optional[int] = None
@@ -151,3 +151,14 @@ class ProductService:
             products = [p for p in products if p.owner_id == owner_id]
 
         return [ProductListSchema.model_validate(product) for product in products]
+
+    async def get_all_product_file_names_by_owner(self, owner_id: int) -> list[str]:
+        products = await self.product_repo.get_by_owner(owner_id)
+        file_names = []
+
+        for product in products:
+            for image in product.images:
+                if image.file_name:
+                    file_names.append(image.file_name)
+
+        return file_names

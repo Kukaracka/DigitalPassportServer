@@ -15,20 +15,19 @@ logger = logging.getLogger(__name__)
 
 settings = get_settings()
 
-class StorageService:
 
+class StorageService:
     def __init__(self):
         self.internal_endpoint = settings.MINIO_ENDPOINT
-        self.public_endpoint = os.getenv("MINIO_PUBLIC_ENDPOINT", "194.150.220.138:9000")
+        self.public_endpoint = os.getenv(
+            "MINIO_PUBLIC_ENDPOINT", "194.150.220.138:9000"
+        )
         self.access_key = settings.MINIO_ACCESS_KEY
         self.secret_key = settings.MINIO_SECRET_KEY
         self.bucket = settings.MINIO_BUCKET
         self.secure = settings.MINIO_SECURE
 
-        http_client = urllib3.PoolManager(
-            cert_reqs="CERT_NONE",
-            assert_hostname=False
-        )
+        http_client = urllib3.PoolManager(cert_reqs="CERT_NONE", assert_hostname=False)
 
         logger.info(f"MinIO internal endpoint: {self.internal_endpoint}")
         logger.info(f"MinIO public endpoint: {self.public_endpoint}")
@@ -39,7 +38,7 @@ class StorageService:
             access_key=self.access_key,
             secret_key=self.secret_key,
             secure=self.secure,
-            http_client=http_client
+            http_client=http_client,
         )
 
         # presigned URLs
@@ -48,7 +47,7 @@ class StorageService:
             access_key=self.access_key,
             secret_key=self.secret_key,
             secure=self.secure,
-            http_client=http_client
+            http_client=http_client,
         )
 
         self._ensure_bucket_exists()
@@ -90,12 +89,26 @@ class StorageService:
             return self.public_client.presigned_get_object(
                 bucket_name=self.bucket,
                 object_name=file_name,
-                expires=timedelta(seconds=expires)
+                expires=timedelta(seconds=expires),
             )
 
         except Exception as e:
             logger.error(f"Download URL error: {e}")
             return None
+
+    async def delete_files(self, file_names: list[str]) -> bool:
+        """
+        Удаляет несколько файлов из MinIO.
+        Возвращает True, если все удалены успешно.
+        """
+        success = True
+        for file_name in file_names:
+            try:
+                self.client.remove_object(self.bucket, file_name)
+            except Exception as e:
+                logger.error(f"Failed to delete {file_name}: {e}")
+                success = False
+        return success
 
     def get_upload_url(self, file_name: str, expires: int = 3600) -> Optional[str]:
         """Presigned URL для загрузки"""
@@ -104,7 +117,7 @@ class StorageService:
             return self.public_client.presigned_put_object(
                 bucket_name=self.bucket,
                 object_name=file_name,
-                expires=timedelta(seconds=expires)
+                expires=timedelta(seconds=expires),
             )
 
         except Exception as e:
