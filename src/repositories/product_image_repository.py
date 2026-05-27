@@ -120,7 +120,7 @@ class ProductImageRepository:
         image = await self.get_by_id(image_id)
         if image:
             await self.session.delete(image)
-            await self.session.flush()
+            await self.session.commit()
             return True
         return False
 
@@ -131,7 +131,7 @@ class ProductImageRepository:
                 ProductImageModel.product_id == product_id
             )
         )
-        await self.session.flush()
+        await self.session.commit()
 
     async def set_main_image(self, product_id: int, image_id: int) -> bool:
         """Установить изображение как главное"""
@@ -147,7 +147,7 @@ class ProductImageRepository:
         if image and image.product_id == product_id:
             image.is_main = True
             image.updated_at = self._get_naive_datetime()  # Обновляем время
-            await self.session.flush()
+            await self.session.commit()
             return True
         return False
 
