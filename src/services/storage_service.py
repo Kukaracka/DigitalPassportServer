@@ -37,7 +37,7 @@ class StorageService:
             endpoint=self.internal_endpoint,
             access_key=self.access_key,
             secret_key=self.secret_key,
-            secure=self.secure,
+            secure=False,
             http_client=http_client,
         )
 
@@ -46,7 +46,7 @@ class StorageService:
             endpoint=self.public_endpoint,
             access_key=self.access_key,
             secret_key=self.secret_key,
-            secure=self.secure,
+            secure=True,
             http_client=http_client,
         )
 
