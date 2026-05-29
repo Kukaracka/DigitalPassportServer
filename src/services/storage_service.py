@@ -20,7 +20,7 @@ class StorageService:
     def __init__(self):
         self.internal_endpoint = settings.MINIO_ENDPOINT
         self.public_endpoint = os.getenv(
-            "MINIO_PUBLIC_ENDPOINT", "nl.tmpan.ru"
+            "MINIO_PUBLIC_ENDPOINT", "nl.tmpan.ru:9000"
         )
         self.access_key = settings.MINIO_ACCESS_KEY
         self.secret_key = settings.MINIO_SECRET_KEY
