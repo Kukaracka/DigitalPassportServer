@@ -20,34 +20,33 @@ class StorageService:
     def __init__(self):
         self.internal_endpoint = settings.MINIO_ENDPOINT
         self.public_endpoint = os.getenv(
-            "MINIO_PUBLIC_ENDPOINT", "194.150.220.138:9000"
+            "MINIO_PUBLIC_ENDPOINT", "nl.tmpan.ru"
         )
         self.access_key = settings.MINIO_ACCESS_KEY
         self.secret_key = settings.MINIO_SECRET_KEY
         self.bucket = settings.MINIO_BUCKET
-        self.secure = settings.MINIO_SECURE
-
-        http_client = urllib3.PoolManager(cert_reqs="CERT_NONE", assert_hostname=False)
 
         logger.info(f"MinIO internal endpoint: {self.internal_endpoint}")
         logger.info(f"MinIO public endpoint: {self.public_endpoint}")
 
-        # backend -> minio
         self.client = Minio(
             endpoint=self.internal_endpoint,
             access_key=self.access_key,
             secret_key=self.secret_key,
             secure=False,
-            http_client=http_client,
         )
 
-        # presigned URLs
+        http_client_for_https = urllib3.PoolManager(
+            cert_reqs="CERT_NONE", 
+            assert_hostname=False
+        )
+
         self.public_client = Minio(
             endpoint=self.public_endpoint,
             access_key=self.access_key,
             secret_key=self.secret_key,
-            secure=True,
-            http_client=http_client,
+            secure=True, # С SSL наружу
+            http_client=http_client_for_https,
         )
 
         self._ensure_bucket_exists()
