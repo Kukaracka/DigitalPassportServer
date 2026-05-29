@@ -8,8 +8,6 @@ services:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_DB=${DB_NAME}
-    ports:
-      - "5432:5432"
 
   minio:
     image: minio/minio:latest
@@ -19,7 +17,6 @@ services:
       - MINIO_ROOT_USER=${MINIO_ACCESS_KEY}
       - MINIO_ROOT_PASSWORD=${MINIO_SECRET_KEY}
     ports:
-      - "9000:9000" 
       - "9001:9001"
     volumes:
       - minio_data:/data
@@ -28,6 +25,8 @@ services:
 
   backend:
     image: ghcr.io/kukaracka/digitalpassportserver:latest
+    env_file:
+      - .env 
     depends_on:
       - db
       - minio
