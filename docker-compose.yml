@@ -34,11 +34,6 @@ services:
     depends_on:
       - db
       - minio
-    volumes:
-      # - ./src:/app/src
-      - ./ssl:/app/ssl
-    expose:
-      - "8000:8000"
     command: [
       "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"
     ]
