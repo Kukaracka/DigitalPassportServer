@@ -46,7 +46,6 @@ class StorageService:
             access_key=self.access_key,
             secret_key=self.secret_key,
             secure=True, # С SSL наружу
-            http_client=http_client_for_https,
         )
 
         self._ensure_bucket_exists()
