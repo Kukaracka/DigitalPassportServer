@@ -1,17 +1,18 @@
 # /home/kukaracka/Projects/DigitalPassport/backend/src/repositories/product_image_repository.py
 
 from typing import List, Optional
+from sqlalchemy import select, and_, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_, delete
-from sqlalchemy.orm import selectinload
-from database.models import ProductImageModel, ImageType, Session
+from database.models import ProductImageModel, ImageType
 from datetime import datetime
 import pytz
 
+from src.utils.repository import SQLAlchemyRepository
 
-class ProductImageRepository:
-    def __init__(self):
-        self.session = Session()
+
+class ProductImageRepository(SQLAlchemyRepository[ProductImageModel]):
+    def __init__(self, session: AsyncSession):
+        super().__init__(ProductImageModel, session)
 
     def _get_naive_datetime(self) -> datetime:
         """Возвращает datetime без часового пояса"""
@@ -25,8 +26,8 @@ class ProductImageRepository:
         file_name: str, 
         original_name: str,
         image_type: ImageType = ImageType.OTHER,
-        file_size: int = None, 
-        content_type: str = None
+        file_size: int = 0, 
+        content_type: str = ""
     ) -> ProductImageModel:
         """Создать запись об изображении"""
         import logging
@@ -43,7 +44,7 @@ class ProductImageRepository:
         
         logger.info(f"Creating image: product_id={product_id}, file_name={file_name}")
         
-        image = ProductImageModel(
+        image = self.model(
             product_id=product_id,
             file_name=file_name,
             original_name=original_name,
@@ -61,18 +62,18 @@ class ProductImageRepository:
         logger.info(f"Image flushed with ID: {image.id}")
         
         await self.session.commit()
-        logger.info(f"Image committed to database")
+        logger.info("Image committed to database")
         
         await self.session.refresh(image)
-        logger.info(f"Image refreshed from database")
+        logger.info("Image refreshed from database")
         
         return image
 
     async def get_by_product(self, product_id: int) -> List[ProductImageModel]:
         """Получить все изображения продукта из БД"""
-        query = select(ProductImageModel).where(
-            ProductImageModel.product_id == product_id
-        ).order_by(ProductImageModel.sort_order)
+        query = select(self.model).where(
+            self.model.product_id == product_id
+        ).order_by(self.model.sort_order)
         
         result = await self.session.execute(query)
         images = list(result.scalars().all())
@@ -90,26 +91,26 @@ class ProductImageRepository:
         image_type: ImageType
     ) -> List[ProductImageModel]:
         """Получить изображения продукта по типу"""
-        query = select(ProductImageModel).where(
+        query = select(self.model).where(
             and_(
-                ProductImageModel.product_id == product_id,
-                ProductImageModel.image_type == image_type
+                self.model.product_id == product_id,
+                self.model.image_type == image_type
             )
-        ).order_by(ProductImageModel.sort_order)
+        ).order_by(self.model.sort_order)
         
         result = await self.session.execute(query)
         return list(result.scalars().all())  # Преобразуем Sequence в List
 
     async def get_by_id(self, image_id: int) -> Optional[ProductImageModel]:
         """Получить изображение по ID"""
-        return await self.session.get(ProductImageModel, image_id)
+        return await self.read_one(image_id)
 
     async def get_main_image(self, product_id: int) -> Optional[ProductImageModel]:
         """Получить главное изображение продукта"""
-        query = select(ProductImageModel).where(
+        query = select(self.model).where(
             and_(
-                ProductImageModel.product_id == product_id,
-                ProductImageModel.is_main.is_(True)  # Исправляем сравнение с True
+                self.model.product_id == product_id,
+                self.model.is_main.is_(True)  # Исправляем сравнение с True
             )
         )
         result = await self.session.execute(query)
@@ -119,7 +120,9 @@ class ProductImageRepository:
         """Удалить изображение"""
         image = await self.get_by_id(image_id)
         if image:
-            await self.session.delete(image)
+            await self.session.execute(
+                delete(self.model).where(self.model.id == image_id)
+            )
             await self.session.commit()
             return True
         return False
@@ -127,8 +130,8 @@ class ProductImageRepository:
     async def delete_by_product(self, product_id: int) -> None:
         """Удалить все изображения продукта"""
         await self.session.execute(
-            delete(ProductImageModel).where(
-                ProductImageModel.product_id == product_id
+            delete(self.model).where(
+                self.model.product_id == product_id
             )
         )
         await self.session.commit()
@@ -136,9 +139,11 @@ class ProductImageRepository:
     async def set_main_image(self, product_id: int, image_id: int) -> bool:
         """Установить изображение как главное"""
         # Сначала сбрасываем главное у всех изображений продукта
-        stmt = ProductImageModel.__table__.update().where(
-            ProductImageModel.product_id == product_id
+        stmt = (update(self.model)
+        .where(
+            self.model.product_id == product_id
         ).values(is_main=False)
+        )
         
         await self.session.execute(stmt)
         
@@ -154,20 +159,22 @@ class ProductImageRepository:
     async def reorder_images(self, product_id: int, image_ids: List[int]):
         """Изменить порядок изображений"""
         for idx, image_id in enumerate(image_ids):
-            stmt = ProductImageModel.__table__.update().where(
-                and_(
-                    ProductImageModel.id == image_id,
-                    ProductImageModel.product_id == product_id
-                )
-            ).values(sort_order=idx)
+            stmt = (
+                update(self.model)
+                .where(
+                    and_(
+                        self.model.id == image_id,
+                        self.model.product_id == product_id
+                    )
+                ).values(sort_order = idx)
+            )
             
             await self.session.execute(stmt)
-        await self.session.flush()
 
     async def count_by_product(self, product_id: int) -> int:
         """Посчитать количество изображений продукта"""
-        query = select(ProductImageModel).where(
-            ProductImageModel.product_id == product_id
+        query = select(self.model).where(
+            self.model.product_id == product_id
         )
         result = await self.session.execute(query)
         return len(result.scalars().all())

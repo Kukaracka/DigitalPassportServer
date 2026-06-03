@@ -8,8 +8,8 @@ from database.models import UserModel
 from repositories.user_repository import UserRepository
 from schemas.user_schemas import UserCreateSchema, UserReadSchema, UserUpdateSchema
 from services.auth_service import AuthService
-from services.product_service import ProductService
 from services.storage_service import StorageService
+from src.repositories.product_repository import ProductRepository
 
 logger = logging.getLogger(__name__)
 
@@ -20,12 +20,12 @@ class UserService:
         users_repo: UserRepository,
         storage_service: StorageService,
         auth_service: AuthService,
-        product_service: ProductService
+        product_repo: ProductRepository,
     ):
         self.users_repo = users_repo
         self.storage_service = storage_service
         self.auth_service = auth_service
-        self.product_service = product_service
+        self.product_repo = product_repo
 
     async def add_user(self, user: UserCreateSchema):
         """Добавить пользователя"""
@@ -48,7 +48,6 @@ class UserService:
             logger.warning(f"Пользователь {user_id} не найден")
             return None
 
-        # Преобразуем SQLAlchemy объект в словарь
         user_dict = {
             "id": user_obj.id,
             "username": user_obj.username,
@@ -68,11 +67,7 @@ class UserService:
         if user_obj.avatar:
             logger.info(f"Есть аватар в БД: {user_obj.avatar}")
             try:
-                # Проверим, существует ли файл в MinIO
                 logger.info("Проверяем существование файла в MinIO...")
-
-                # Сначала проверим, есть ли метод get_download_url
-                logger.info(f"Методы storage_service: {dir(self.storage_service)}")
 
                 avatar_url = self.storage_service.get_download_url(
                     file_name=user_obj.avatar, expires=3600
@@ -107,7 +102,6 @@ class UserService:
 
         logger.info(f"Финальный словарь: {user_dict}")
 
-        print(f"\n\n\n{user_dict}")
         # Валидируем и возвращаем
         return UserReadSchema.model_validate(user_dict)
 
@@ -137,28 +131,16 @@ class UserService:
 
         files_to_delete = []
 
-        # avatar
         if user.avatar:
             files_to_delete.append(user.avatar)
 
-        # product images
-        if self.product_service:
-            product_files = (
-                await self.product_service.get_all_product_file_names_by_owner(user_id)
-            )
-            files_to_delete.extend(product_files)
+        product_files = await self.product_repo.get_file_names_by_owner(user_id)
+        files_to_delete.extend(product_files)
 
-        # delete files from MinIO
         if files_to_delete:
             await self.storage_service.delete_files(files_to_delete)
 
-        # delete user from DB
-        deleted = await self.users_repo.delete_one(user_id)
-
-        if not deleted:
-            raise HTTPException(status_code=500, detail="Failed to delete user")
-
-        return True
+        return await self.users_repo.delete_one(user_id)
 
     async def change_password(
         self,
