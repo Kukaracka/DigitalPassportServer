@@ -1,5 +1,6 @@
 key.pem
 ssl/
+test.db
 
 __pycache__/
 pyproject.toml
