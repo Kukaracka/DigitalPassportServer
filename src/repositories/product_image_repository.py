@@ -7,7 +7,7 @@ from database.models import ProductImageModel, ImageType
 from datetime import datetime
 import pytz
 
-from src.utils.repository import SQLAlchemyRepository
+from utils.repository import SQLAlchemyRepository
 
 
 class ProductImageRepository(SQLAlchemyRepository[ProductImageModel]):

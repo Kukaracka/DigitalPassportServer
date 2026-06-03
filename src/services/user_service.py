@@ -9,7 +9,7 @@ from repositories.user_repository import UserRepository
 from schemas.user_schemas import UserCreateSchema, UserReadSchema, UserUpdateSchema
 from services.auth_service import AuthService
 from services.storage_service import StorageService
-from src.repositories.product_repository import ProductRepository
+from repositories.product_repository import ProductRepository
 
 logger = logging.getLogger(__name__)
 

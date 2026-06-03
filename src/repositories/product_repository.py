@@ -1,7 +1,7 @@
 from typing import Optional, List, Sequence
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.database.models import ProductModel
+from database.models import ProductModel
 from utils.repository import SQLAlchemyRepository
 
 
