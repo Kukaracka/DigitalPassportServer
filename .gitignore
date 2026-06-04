@@ -5,3 +5,5 @@ test.db
 __pycache__/
 pyproject.toml
 .env
+/.python-version
+/uv.lock
