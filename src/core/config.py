@@ -9,10 +9,10 @@ load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 class Settings(BaseSettings):
     # MinIO settings
     MINIO_ENDPOINT: str = "minio:9000"
-    MINIO_ACCESS_KEY: str = ""
-    MINIO_SECRET_KEY: str = ""
+    MINIO_ACCESS_KEY: str = "test_minio"  # Вписаны credentials из docker inspect
+    MINIO_SECRET_KEY: str = "test_minio_password"  # Вписаны credentials
     MINIO_SECURE: bool = False
-    MINIO_BUCKET: str = "avatars"
+    MINIO_BUCKET: str = "digital-passport"
     MINIO_PUBLIC_URL: str = "http://localhost:9000"
     
     # Google settings
@@ -22,11 +22,11 @@ class Settings(BaseSettings):
     FRONTEND_URL: str = "https://example.com"
     
     # Database settings
-    DB_USER: str = ""
-    DB_PASSWORD: str = ""
-    DB_HOST: str = ""
-    DB_PORT: str = ""
-    DB_NAME: str = ""
+    DB_USER: str = "test"  # Вписаны credentials из DATABASE_URL
+    DB_PASSWORD: str = "test"  # Вписаны credentials
+    DB_HOST: str = "db"  # Вписаны credentials
+    DB_PORT: str = "5432"  # Вписаны credentials
+    DB_NAME: str = "test_db"  # Вписаны credentials
     
     # JWT settings
     SECRET_KEY: str = "your-secret-key"
