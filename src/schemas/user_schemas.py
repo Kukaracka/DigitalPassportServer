@@ -11,8 +11,9 @@ from pydantic import (
 class UserSchema(BaseModel):
     username: str = Field(max_length=20, min_length=5)
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(
+        from_attributes=True
+    )
 
 
 class DeleteUserRequest(BaseModel):
@@ -99,5 +100,6 @@ class UserUpdateSchema(BaseModel):
 class TokenResponseSchema(BaseModel):
     access_token: str
 
-    class Config:
-        json_schema_extra = {"example": {"access_token": "string"}}
+    model_config = ConfigDict(
+        from_attributes=True
+    )
