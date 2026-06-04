@@ -26,9 +26,9 @@ class MockAuth:
         return True
 
 
-class MockProductService:
-    async def get_all_product_file_names_by_owner(self, user_id):
-        return ["img1.jpg", "img2.jpg"]
+class MockProductRepository:
+    async def get_file_names_by_owner(self, owner_id: int):
+        return ["file1.jpg", "file2.jpg"]
 
 
 @pytest.mark.asyncio
@@ -37,7 +37,7 @@ async def test_delete_user():
         users_repo=MockRepo(),
         storage_service=MockStorage(),
         auth_service=MockAuth(),
-        product_service=MockProductService()
+        product_repo=MockProductRepository()
     )
 
     result = await service.delete_user(1, "123")

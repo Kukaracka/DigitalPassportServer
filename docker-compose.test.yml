@@ -1,0 +1,61 @@
+services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: test_db
+    ports:
+      - "5432:5432"
+    networks:
+      - test-network
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio_test
+    restart: always
+    environment:
+      MINIO_ROOT_USER: test_minio
+      MINIO_ROOT_PASSWORD: test_minio_password
+    command: server /data --console-address ":9001"
+    ports:
+      - "9001:9001"
+      - "9000:9000"
+    volumes:
+      - minio_test_data:/data
+    networks:
+      - test-network
+
+  backend:
+    build: .
+    container_name: test_runner
+    working_dir: /app
+    environment:
+      - PYTHONPATH=/app/src
+      - DATABASE_URL=postgresql+asyncpg://test:test@db:5432/test_db
+      - DB_USER=test
+      - DB_PASSWORD=test
+      - DB_HOST=db
+      - DB_PORT=5432
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=test_minio
+      - MINIO_SECRET_KEY=test_minio_password
+      - MINIO_PUBLIC_ENDPOINT=minio:9000
+      - MINIO_BUCKET=digital-passport
+      
+      - MINIO_SECURE=False
+      - MINIO_REGION=us-east-1
+    depends_on:
+      - db
+      - minio
+    # command: pytest -q
+    networks:
+      - test-network
+
+networks:
+  test-network:
+    driver: bridge
+
+volumes:
+  minio_test_data:
