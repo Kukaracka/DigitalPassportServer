@@ -7,7 +7,7 @@ from database.models import UserModel
 from services.storage_service import StorageService
 from services.user_service import UserService
 
-image_router = APIRouter()
+image_router = APIRouter(tags=["ProductImages"])
 
 @image_router.post("/users/me/avatar")
 async def upload_user_avatar(
@@ -110,13 +110,12 @@ async def upload_user_avatar(
         print(f"Database update error: {e}")
         # Пробуем удалить загруженный файл, если не удалось обновить БД
         try:
-            storage.delete_file(object_name)
+            storage.delete_files(object_name)
         except:
-            pass
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to update user record: {str(e)}"
-        )
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to update user record: {str(e)}"
+            )
     
     # Получаем URL для загруженного аватара
     avatar_url = None

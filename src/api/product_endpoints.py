@@ -195,20 +195,6 @@ async def upload_product_image(
 
 
 @product_router.get(
-    "/{product_id}/images",
-    response_model=List[ProductImageReadSchema],
-    response_description="Список всех изображений продукта",
-)
-async def get_product_images(
-    product_id: int,
-    current_user: UserModel = Depends(get_current_authorised_user),
-    image_service: ProductImageService = Depends(get_product_image_service),
-):
-    """Получить все изображения продукта"""
-    return await image_service.get_product_images(product_id)
-
-
-@product_router.get(
     "/{product_id}/images/by-type/{image_type}",
     response_model=List[ProductImageReadSchema],
     response_description="Изображения продукта по типу",
@@ -342,7 +328,7 @@ async def upload_product_image_direct(
 @product_router.get(
     "/{product_id}/images",
     response_model=List[ProductImageReadSchema],
-    response_description="Список изображений продукта"
+    response_description="Список изображений продукта",
 )
 async def get_product_images(
     product_id: int,
@@ -352,15 +338,15 @@ async def get_product_images(
 ):
     """
     Получить все изображения продукта.
-    
+
     Возвращает список изображений с presigned URLs для скачивания.
     """
     # Проверяем, что продукт принадлежит текущему пользователю
     product = await product_service.get_product(product_id, current_user.id)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
-    
+
     # Получаем изображения
     images = await image_service.get_product_images(product_id)
-    
+
     return images
